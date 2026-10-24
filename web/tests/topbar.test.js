@@ -37,3 +37,9 @@ test('species filter lists species by sample count', () => {
   const opts = [...screen.getByLabelText('Species').querySelectorAll('option')].map((o) => o.textContent);
   expect(opts).toEqual(['All species', 'Largemouth Bass', 'Bowfin']);
 });
+
+test('contaminant pill lists mercury', () => {
+  render(TopBar, { onPick: () => {}, onLocate: () => {} });
+  const opts = [...screen.getByLabelText('Contaminant').querySelectorAll('option')].map((o) => o.textContent);
+  expect(opts).toEqual(['Mercury']);
+});

@@ -1,5 +1,5 @@
 <script>
-  import { ALL_SPECIES, PERIOD_LABELS, PERIODS } from '../lib/config.js';
+  import { ALL_SPECIES, CONTAMINANTS, PERIOD_LABELS, PERIODS } from '../lib/config.js';
   import { MODE_SHORT, MODES } from '../lib/coloring.js';
   import { displaySpecies } from '../lib/format.js';
   import { searchSites } from '../lib/search.js';
@@ -35,6 +35,9 @@
     <button class="locate" onclick={onLocate} aria-label="Show sites near me" title="Near me">📍</button>
   </div>
   <div class="row pills">
+    <select aria-label="Contaminant" disabled={CONTAMINANTS.length === 1}>
+      {#each CONTAMINANTS as c (c.id)}<option value={c.id}>{c.label}</option>{/each}
+    </select>
     <select aria-label="Species" value={app.filter} onchange={(e) => update({ filter: e.currentTarget.value })}>
       <option value={ALL_SPECIES}>All species</option>
       {#each speciesOptions as name (name)}
@@ -58,15 +61,20 @@
   }
   .row { display: flex; gap: 6px; pointer-events: auto; }
   @media (min-width: 768px) { .topbar { right: auto; width: min(560px, calc(100vw - min(560px, 50vw) - 16px)); } }
-  .pills { overflow-x: auto; scrollbar-width: none; }
+  .pills {
+    overflow-x: auto; scrollbar-width: none; padding-right: 24px;
+    mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent); /* hints that the row scrolls */
+  }
   .search { position: relative; flex: 1; }
   input, select, .locate {
     min-height: 44px; border-radius: 22px; border: 1px solid var(--border);
     background: var(--surface); color: var(--text); font: inherit; box-shadow: var(--shadow);
   }
   input { width: 100%; padding: 0 16px; }
-  select { padding: 0 8px; flex: 1 1 0; min-width: 0; font-size: 14px; }
-  select[aria-label='Color by'] { flex-grow: 1.6; }
+  /* Pills keep their full text; the row scrolls sideways on narrow phones. */
+  select { padding: 0 10px; flex: 0 0 auto; font-size: 14px; }
+  select:disabled { opacity: 1; color: var(--text); }
+  select[aria-label='Species'] { max-width: 40vw; }
   .locate { width: 44px; flex-shrink: 0; cursor: pointer; }
   ul {
     position: absolute; top: 48px; left: 0; right: 0; margin: 0; padding: 4px 0; list-style: none;

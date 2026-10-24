@@ -6,6 +6,8 @@ export const PERIOD_LABELS = { 5: 'Last 5 yrs', 10: 'Last 10 yrs', 20: 'Last 20 
 export const LDH_ADVISORIES_URL = 'https://ldh.la.gov/page/2629';
 export const NATIONAL_MIN_N = 5;
 export const ALL_SPECIES = 'ALL';
+// What the map measures. Only mercury today; every color mode and stat is implicitly for this contaminant.
+export const CONTAMINANTS = [{ id: 'mercury', label: 'Mercury', unit: 'ppm' }];
 export const BASINS = {
   '01': 'Atchafalaya', '02': 'Barataria', '03': 'Calcasieu', '04': 'Lake Pontchartrain',
   '05': 'Mermentau', '06': 'Vermilion-Teche', '07': 'Mississippi River', '08': 'Ouachita',

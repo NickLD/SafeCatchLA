@@ -1,5 +1,5 @@
 <script>
-  import { ALL_SPECIES, EPA_GUIDELINE_PPM } from '../lib/config.js';
+  import { ALL_SPECIES, CONTAMINANTS, EPA_GUIDELINE_PPM } from '../lib/config.js';
   import { MODE_LABELS } from '../lib/coloring.js';
   import { displaySpecies } from '../lib/format.js';
   import { app } from '../lib/state.svelte.js';
@@ -15,7 +15,7 @@
     <button onclick={() => (open = !open)} aria-expanded={open} aria-label="About these colors">ⓘ</button>
   </div>
   <div class="sub">
-    Fish-tissue mercury · {mixed ? 'All species (mixed)' : app.filter === ALL_SPECIES ? 'All species' : displaySpecies(app.filter)}
+    {CONTAMINANTS[0].label} in fish tissue · {mixed ? 'All species (mixed)' : app.filter === ALL_SPECIES ? 'All species' : displaySpecies(app.filter)}
   </div>
   <Thermometer />
   <div class="nodata"><span class="dot hollow"></span>{app.color === 'trend' ? 'Too few years to tell' : 'No recent data'}</div>
@@ -48,8 +48,6 @@
   .head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
   .head button { border: 0; background: none; font-size: 18px; min-width: 32px; min-height: 32px; cursor: pointer; color: var(--text); }
   .sub { color: var(--muted); }
-  ul { list-style: none; margin: 4px 0 0; padding: 0; }
-  li { display: flex; align-items: center; gap: 6px; line-height: 1.5; }
   .dot { display: inline-block; width: 12px; min-width: 12px; height: 12px; border-radius: 50%; border: 1px solid rgba(0, 0, 0, 0.25); flex-shrink: 0; }
   p { margin: 6px 0 0; }
   .nodata { display: flex; align-items: center; gap: 6px; margin-top: 2px; }

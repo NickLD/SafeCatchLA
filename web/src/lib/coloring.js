@@ -3,14 +3,15 @@ import { ALL_SPECIES, EPA_GUIDELINE_PPM, NEAR_LOWER_PPM } from './config.js';
 import { periodMean, periodStartYear, speciesYears, trendPercent } from './stats.js';
 
 export const MODES = ['avg', 'latest', 'age', 'trend'];
+// Labels don't name the contaminant: the Contaminant pill does.
 export const MODE_LABELS = {
-  avg: 'Average Mercury Over Time (ppm)',
-  latest: 'Mercury Concentration at Most Recent Sampling Event (ppm)',
-  age: 'Years Since Last Mercury Sample',
-  trend: 'Mercury Trend (% Change per Decade)',
+  avg: 'Average Concentration Over Time (ppm)',
+  latest: 'Concentration at Most Recent Sampling Event (ppm)',
+  age: 'Years Since Last Sample',
+  trend: 'Trend (% Change per Decade)',
 };
 export const MODE_SHORT = {
-  avg: 'Avg Mercury Over Time', latest: 'Concentration at Most Recent Sampling Event', age: 'Sample Age', trend: 'Trend',
+  avg: 'Avg Concentration Over Time', latest: 'Concentration at Most Recent Sampling Event', age: 'Sample Age', trend: 'Trend',
 };
 
 const NODATA_COLOR = '#9e9e9e';
