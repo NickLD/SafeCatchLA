@@ -94,7 +94,7 @@
     <Disclaimer />
 
     <h3>{displaySpecies(species)} over time</h3>
-    <TrendChart years={entry.years} {samples} {stateAvg} cuts={app.sizeClasses[species]} />
+    <TrendChart years={entry.years} {samples} {stateAvg} cuts={app.sizeClasses[species]} {period} {latestYear} />
 
     <CompareBars {site} {national} {period} {latestYear} />
     <AllSpeciesList {site} {period} {latestYear} />

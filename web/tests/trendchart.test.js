@@ -30,3 +30,17 @@ test('without size cutoffs there are no chips and the line uses the yearly data'
   expect(screen.queryByRole('button', { name: /Small/ })).toBeNull();
   expect(screen.getByRole('button', { name: '1994: 0.40 ppm' })).toBeTruthy();
 });
+
+test('marks where the selected period starts', () => {
+  const years = { '1994': [0.8, 2], '2016': [0.3, 1], '2022': [0.2, 1] };
+  render(TrendChart, { years, samples: [], cuts: undefined, period: 10, latestYear: 2026 });
+  expect(screen.getByText('Last 10 yrs →')).toBeTruthy();
+});
+
+test('no period marker for all years, or when the whole history is inside the period', () => {
+  const years = { '1994': [0.8, 2], '2016': [0.3, 1] };
+  render(TrendChart, { years, samples: [], cuts: undefined, period: 'all', latestYear: 2026 });
+  expect(screen.queryByText(/yrs →/)).toBeNull();
+  render(TrendChart, { years: { '2020': [0.3, 1], '2024': [0.2, 1] }, samples: [], period: 10, latestYear: 2026 });
+  expect(screen.queryByText(/yrs →/)).toBeNull();
+});

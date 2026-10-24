@@ -2,12 +2,12 @@
   import { EPA_GUIDELINE_PPM } from '../lib/config.js';
   import { formatPpm } from '../lib/format.js';
   import { classLabel, describeSample, SIZE_CLASSES, SIZE_COLORS, sizeClass, yearsFromSamples } from '../lib/size.js';
-  import { yearlyMeans } from '../lib/stats.js';
+  import { periodStartYear, yearlyMeans } from '../lib/stats.js';
 
   // years: full history for one species at this site (used until samples load);
   // samples: individual results from the site detail file; cuts: [smallMax, mediumMax] lengths in cm, or undefined;
-  // stateAvg: Louisiana mean for the selected period, or null.
-  let { years, samples = [], stateAvg = null, cuts } = $props();
+  // stateAvg: Louisiana mean for the selected period, or null. period/latestYear mark where the stats start.
+  let { years, samples = [], stateAvg = null, cuts, period = 'all', latestYear = null } = $props();
 
   const W = 340, H = 220, L = 34, R = 8, T = 14, B = 22;
   let hidden = $state(new Set());
@@ -22,6 +22,10 @@
   let maxData = $derived(Math.max(0, ...allPts.map((p) => p.mean), ...samples.map((s) => s.value ?? 0)));
   let yMax = $derived(Math.max(maxData * 1.1, EPA_GUIDELINE_PPM + 0.05, stateAvg ? stateAvg * 1.2 : 0));
   let present = $derived(SIZE_CLASSES.filter((c) => classed.some((s) => s.cls === c)));
+
+  // Vertical marker where the selected averaging period begins (samples sit within ±half a year of their year).
+  let startYear = $derived(period === 'all' || latestYear === null ? null : periodStartYear(period, latestYear));
+  let markX = $derived(startYear !== null && startYear > x0 ? Math.min(sx(startYear - 0.5), W - R) : null);
 
   const sx = (year) => L + ((year - x0) / (x1 - x0)) * (W - L - R);
   const sy = (v) => T + (1 - v / yMax) * (H - T - B);
@@ -61,6 +65,11 @@
       <text x={L} y={H - 6} class="tick">{x0}</text>
       <text x={W - R} y={H - 6} text-anchor="end" class="tick">{x1}</text>
 
+      {#if markX !== null}
+        <rect x={L} y={T} width={markX - L} height={H - T - B} class="before" />
+        <line x1={markX} x2={markX} y1={T - 4} y2={H - B} class="period" />
+        <text x={markX > W * 0.7 ? markX - 3 : markX + 3} y={T + 6} text-anchor={markX > W * 0.7 ? 'end' : 'start'} class="period-t">Last {period} yrs →</text>
+      {/if}
       <line x1={L} x2={W - R} y1={sy(EPA_GUIDELINE_PPM)} y2={sy(EPA_GUIDELINE_PPM)} class="epa" />
       {#if stateAvg !== null}
         <line x1={L} x2={W - R} y1={sy(stateAvg)} y2={sy(stateAvg)} class="state" />
@@ -118,6 +127,9 @@
   .grid { stroke: var(--border); stroke-width: 0.5; }
   .tick { font-size: 9px; fill: var(--muted); }
   .epa { stroke: #d7191c; stroke-dasharray: 4 3; }
+  .before { fill: var(--text); opacity: 0.05; }
+  .period { stroke: var(--accent); stroke-width: 1.5; }
+  .period-t { font-size: 9px; fill: var(--accent); font-weight: 600; }
   .key { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 11px; color: var(--muted); margin-top: 2px; }
   .key span { display: inline-flex; align-items: center; gap: 4px; }
   .key i { display: inline-block; width: 16px; height: 0; }
