@@ -1,0 +1,79 @@
+name: Refresh data and deploy
+
+on:
+  schedule:
+    - cron: '0 11 * * 1' # Mondays 11:00 UTC
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    # Only scheduled/manual runs talk to DEQ; pushes just redeploy what's committed.
+    if: github.event_name != 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      changed: ${{ steps.commit.outputs.changed }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv sync --frozen
+      - run: uv run pytest pipeline/tests -q
+      - name: Fetch from LDEQ (fails loudly on a bad response; published data stays as-is)
+        run: uv run python -m pipeline.fetch
+      - run: uv run python -m pipeline.build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: deq-raw
+          path: data/raw/
+          retention-days: 30
+      - name: Commit data if it changed
+        id: commit
+        run: |
+          if git diff --quiet -- web/public/data && [ -z "$(git ls-files --others --exclude-standard web/public/data)" ]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          updated=$(python3 -c "import json; print(json.load(open('web/public/data/meta.json'))['updated'])")
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add web/public/data
+          git commit -m "data: refresh from LDEQ (${updated})"
+          git push
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+  deploy:
+    needs: refresh
+    # Runs after a refresh, or on its own for pushes (refresh skipped). Never after a failed refresh.
+    if: always() && (needs.refresh.result == 'success' || needs.refresh.result == 'skipped')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main # pick up the data commit made by the refresh job
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci && npm test && npm run build
+        working-directory: web
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: web/dist
+      - id: deployment
+        uses: actions/deploy-pages@v4
