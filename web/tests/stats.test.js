@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import {
-  changeOver, groupMean, mixedYears, periodMean, speciesYears, trendClass, yearlyMeans,
+  changeOver, groupMean, mixedYears, periodMean, speciesYears, trendPercent, yearlyMeans,
 } from '../src/lib/stats.js';
 
 const Y = { '1994': [1.4, 2], '2000': [0.6, 2], '2016': [0.3, 1] };
@@ -28,13 +28,13 @@ test('yearlyMeans sorted by year', () => {
   ]);
 });
 
-test('trendClass', () => {
-  expect(trendClass(Y)).toBe('improving'); // about -33% per decade
-  expect(trendClass({ '2000': [0.5, 1], '2010': [0.5, 1], '2020': [0.5, 1] })).toBe('flat');
-  expect(trendClass({ '2000': [0.2, 1], '2010': [0.4, 1], '2020': [0.6, 1] })).toBe('worsening');
-  expect(trendClass({ '2000': [0.5, 1], '2020': [0.1, 1] })).toBe('insufficient');
-  expect(trendClass({ '2018': [0.5, 1], '2019': [0.4, 1], '2020': [0.3, 1] })).toBe('insufficient');
-  expect(trendClass({ '2000': [0, 1], '2010': [0, 1], '2020': [0, 1] })).toBe('flat');
+test('trendPercent', () => {
+  expect(trendPercent(Y)).toBe(-33); // about -33% per decade
+  expect(trendPercent({ '2000': [0.5, 1], '2010': [0.5, 1], '2020': [0.5, 1] })).toBe(0);
+  expect(trendPercent({ '2000': [0.2, 1], '2010': [0.4, 1], '2020': [0.6, 1] })).toBe(50);
+  expect(trendPercent({ '2000': [0.5, 1], '2020': [0.1, 1] })).toBeNull();
+  expect(trendPercent({ '2018': [0.5, 1], '2019': [0.4, 1], '2020': [0.3, 1] })).toBeNull();
+  expect(trendPercent({ '2000': [0, 1], '2010': [0, 1], '2020': [0, 1] })).toBe(0);
 });
 
 test('groupMean skips sites without period data', () => {

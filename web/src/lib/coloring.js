@@ -1,13 +1,13 @@
 // What a site's map dot color means, for each "Color by" mode.
 import { ALL_SPECIES, EPA_GUIDELINE_PPM, NEAR_LOWER_PPM } from './config.js';
-import { periodMean, periodStartYear, speciesYears, trendClass } from './stats.js';
+import { periodMean, periodStartYear, speciesYears, trendPercent } from './stats.js';
 
 export const MODES = ['avg', 'latest', 'age', 'trend'];
 export const MODE_LABELS = {
-  avg: 'Average mercury concentration',
-  latest: 'Most recent sample',
-  age: 'Age of last sample',
-  trend: 'Trend',
+  avg: 'Average mercury concentration (ppm)',
+  latest: 'Latest mercury result (ppm)',
+  age: 'Years since last mercury sample',
+  trend: 'Mercury trend (% change per decade)',
 };
 export const MODE_SHORT = { avg: 'Avg mercury', latest: 'Latest mercury', age: 'Sample age', trend: 'Trend' };
 
@@ -15,10 +15,13 @@ const NODATA_COLOR = '#9e9e9e';
 // ColorBrewer RdYlBu, split at the EPA guideline: blue side below it, red side above it.
 const BELOW = ['#4575b4', '#91bfdb', '#e0f3f8', '#ffffbf'];
 const ABOVE = ['#ffffbf', '#fee090', '#fdae61', '#f46d43', '#d73027', '#a50026'];
+// ColorBrewer RdBu ends around a neutral grey for "no change".
+const FALLING = ['#2166ac', '#67a9cf', '#d9d9d9'];
+const RISING = ['#d9d9d9', '#ef8a62', '#b2182b'];
 const BLUES_DARK_TO_LIGHT = ['#08306b', '#2171b5', '#6baed6', '#c6dbef'];
 
 const MERCURY_SCALE = {
-  kind: 'diverging', range: [0, 1], minBounds: [0, 0.29], maxBounds: [0.31, 3], step: 0.01,
+  kind: 'diverging', center: EPA_GUIDELINE_PPM, centerLabel: 'EPA 0.3', below: BELOW, above: ABOVE, range: [0, 1], minBounds: [0, 0.29], maxBounds: [0.31, 3], step: 0.01,
   handles: ['Deepest blue at', 'Deepest red at'], unit: 'ppm',
 };
 // Continuous scales; the range is where the end colors are reached (values beyond clamp).
@@ -29,14 +32,13 @@ export const SCALES = {
     kind: 'sequential', colors: BLUES_DARK_TO_LIGHT, range: [0, 30], minBounds: [0, 29], maxBounds: [1, 60], step: 1,
     handles: ['Darkest at', 'Lightest at'], unit: 'yrs ago',
   },
+  trend: {
+    kind: 'diverging', center: 0, centerLabel: 'No change', below: FALLING, above: RISING,
+    range: [-50, 50], minBounds: [-200, -1], maxBounds: [1, 200], step: 1,
+    handles: ['Deepest blue at', 'Deepest red at'], unit: '%',
+  },
 };
 
-const TREND_LEGEND = [
-  { key: 'improving', label: 'Improving', color: '#2c7bb6' },
-  { key: 'flat', label: 'No clear change', color: '#bdbdbd' },
-  { key: 'worsening', label: 'Worsening', color: '#d7191c' },
-  { key: 'insufficient', label: 'Too little data', color: NODATA_COLOR },
-];
 
 export function mercuryBand(v) {
   if (v < NEAR_LOWER_PPM) return 'below';
@@ -44,10 +46,6 @@ export function mercuryBand(v) {
   return 'above';
 }
 
-// Category list for modes that aren't a smooth scale; null for scale modes.
-export function legendFor(mode) {
-  return mode === 'trend' ? TREND_LEGEND : null;
-}
 
 const hex = (c) => [1, 3, 5].map((i) => parseInt(c.slice(i, i + 2), 16));
 const clamp01 = (t) => Math.min(1, Math.max(0, t));
@@ -63,9 +61,9 @@ function interpolate(colors, t) {
 export function scaleColor(mode, value, [min, max]) {
   const scale = SCALES[mode];
   if (scale.kind === 'diverging') {
-    const g = EPA_GUIDELINE_PPM;
-    if (value <= g) return interpolate(BELOW, g > min ? (value - min) / (g - min) : 1);
-    return interpolate(ABOVE, max > g ? (value - g) / (max - g) : 1);
+    const c = scale.center;
+    if (value <= c) return interpolate(scale.below, c > min ? (value - min) / (c - min) : 1);
+    return interpolate(scale.above, max > c ? (value - c) / (max - c) : 1);
   }
   return interpolate(scale.colors, (value - min) / (max - min));
 }
@@ -75,10 +73,10 @@ export function gradientStops(mode, [min, max]) {
   const scale = SCALES[mode];
   const at = (v) => clamp01((v - min) / (max - min));
   if (scale.kind === 'diverging') {
-    const g = EPA_GUIDELINE_PPM;
+    const { center: c, below, above } = scale;
     return [
-      ...BELOW.map((color, i) => ({ offset: at(min + ((g - min) * i) / (BELOW.length - 1)), color })),
-      ...ABOVE.slice(1).map((color, i) => ({ offset: at(g + ((max - g) * (i + 1)) / (ABOVE.length - 1)), color })),
+      ...below.map((color, i) => ({ offset: at(min + ((c - min) * i) / (below.length - 1)), color })),
+      ...above.slice(1).map((color, i) => ({ offset: at(c + ((max - c) * (i + 1)) / (above.length - 1)), color })),
     ];
   }
   return scale.colors.map((color, i) => ({ offset: i / (scale.colors.length - 1), color }));
@@ -106,6 +104,8 @@ function siteValue(site, entries, { mode, species, period, latestYear, today }) 
     }
     case 'age':
       return (today - new Date(latestOf(entries)[0])) / (365.25 * 24 * 3600 * 1000);
+    case 'trend':
+      return trendPercent(speciesYears(site, species));
     default:
       throw new Error(`unknown color mode ${mode}`);
   }
@@ -114,10 +114,6 @@ function siteValue(site, entries, { mode, species, period, latestYear, today }) 
 export function colorSite(site, ctx) {
   const entries = speciesEntries(site, ctx.species);
   if (!entries.length) return { key: 'nodata', color: NODATA_COLOR };
-  if (ctx.mode === 'trend') {
-    const key = trendClass(speciesYears(site, ctx.species));
-    return { key, color: TREND_LEGEND.find((l) => l.key === key).color };
-  }
   const value = siteValue(site, entries, ctx);
   if (value === null) return { key: 'nodata', color: NODATA_COLOR };
   const rounded = Math.round(value * 10000) / 10000;

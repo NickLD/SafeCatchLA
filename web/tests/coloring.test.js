@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { colorSite, gradientStops, legendFor, MODE_LABELS, MODE_SHORT, MODES, mercuryBand, scaleColor, SCALES } from '../src/lib/coloring.js';
+import { colorSite, gradientStops, MODE_LABELS, MODE_SHORT, MODES, mercuryBand, scaleColor, SCALES } from '../src/lib/coloring.js';
 
 const site = {
   last: '2016-09-14',
@@ -34,7 +34,9 @@ test('age scale: recent is dark, old is light', () => {
 test('color modes and their names', () => {
   expect(MODES).toEqual(['avg', 'latest', 'age', 'trend']);
   expect(MODE_SHORT.avg).toBe('Avg mercury');
-  expect(MODE_LABELS.avg).toBe('Average mercury concentration');
+  expect(MODE_SHORT.trend).toBe('Trend'); // fits the phone dropdown; legend title says mercury
+  expect(Object.values(MODE_LABELS).every((l) => /mercury/i.test(l))).toBe(true);
+  expect(MODE_LABELS.trend).toBe('Mercury trend (% change per decade)');
 });
 
 test('colorSite uses the smooth scales with the default range', () => {
@@ -42,7 +44,7 @@ test('colorSite uses the smooth scales with the default range', () => {
   expect(avg).toEqual({ key: 'value', value: 0.57, color: scaleColor('avg', 0.57, SCALES.avg.range) });
   expect(colorSite(site, { ...ctx, mode: 'latest' }).value).toBe(0.31);
   expect(colorSite(site, { ...ctx, mode: 'age' }).value).toBeCloseTo(10.11, 1);
-  expect(colorSite(site, { ...ctx, mode: 'trend' }).key).toBe('insufficient');
+  expect(colorSite(site, { ...ctx, mode: 'trend' }).key).toBe('nodata'); // only 2 years
 });
 
 test('colorSite respects a custom range', () => {
@@ -62,9 +64,22 @@ test('colorSite no recent data', () => {
   expect(colorSite(site, { ...ctx, species: 'OTHER', mode: 'age' }).key).toBe('nodata');
 });
 
-test('legendFor lists categories for trend only', () => {
-  expect(legendFor('trend').map((l) => l.key)).toEqual(['improving', 'flat', 'worsening', 'insufficient']);
-  expect(legendFor('avg')).toBeNull();
+test('trend scale: grey is no change, blue improving, red worsening', () => {
+  expect(scaleColor('trend', 0, [-50, 50])).toBe('#d9d9d9');
+  expect(scaleColor('trend', -50, [-50, 50])).toBe('#2166ac');
+  expect(scaleColor('trend', -25, [-50, 50])).toBe('#67a9cf');
+  expect(scaleColor('trend', 50, [-50, 50])).toBe('#b2182b');
+  expect(scaleColor('trend', 120, [-50, 50])).toBe('#b2182b');
+});
+
+test('colorSite trend uses percent change per decade', () => {
+  const s = { last: '2020-01-01', species: { B: { n: 3, latest: ['2020-01-01', 0.3, 1], years: { '2000': [0.5, 1], '2010': [0.4, 1], '2020': [0.3, 1] } } } };
+  expect(colorSite(s, { ...ctx, mode: 'trend' })).toEqual({ key: 'value', value: -25, color: '#67a9cf' });
+});
+
+test('gradientStops for trend puts no-change at its position', () => {
+  const stops = gradientStops('trend', [-50, 50]);
+  expect(stops.find((x) => x.color === '#d9d9d9').offset).toBeCloseTo(0.5);
 });
 
 test('gradientStops puts the guideline at its position in the bar', () => {

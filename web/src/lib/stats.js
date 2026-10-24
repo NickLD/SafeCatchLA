@@ -1,7 +1,6 @@
 // Pure statistics over per-year [sum, count] pairs from sites.json.
 import { ALL_SPECIES } from './config.js';
 
-const TREND_THRESHOLD = 0.1; // fractional change per decade
 const TREND_MIN_YEARS = 3;
 const TREND_MIN_SPAN = 5;
 
@@ -29,22 +28,21 @@ export function yearlyMeans(years) {
     .sort((a, b) => a.year - b.year);
 }
 
-export function trendClass(years) {
+// Rate of change in mercury, as a whole-number percent per decade (least-squares slope of yearly means,
+// relative to their average). Null when there are too few years to say.
+export function trendPercent(years) {
   const pts = yearlyMeans(years);
-  if (pts.length < TREND_MIN_YEARS || pts.at(-1).year - pts[0].year < TREND_MIN_SPAN) return 'insufficient';
+  if (pts.length < TREND_MIN_YEARS || pts.at(-1).year - pts[0].year < TREND_MIN_SPAN) return null;
   const xm = pts.reduce((a, p) => a + p.year, 0) / pts.length;
   const ym = pts.reduce((a, p) => a + p.mean, 0) / pts.length;
-  if (ym === 0) return 'flat';
+  if (ym === 0) return 0;
   let num = 0;
   let den = 0;
   for (const p of pts) {
     num += (p.year - xm) * (p.mean - ym);
     den += (p.year - xm) ** 2;
   }
-  const perDecade = ((num / den) * 10) / ym;
-  if (perDecade < -TREND_THRESHOLD) return 'improving';
-  if (perDecade > TREND_THRESHOLD) return 'worsening';
-  return 'flat';
+  return Math.round(((num / den) * 10 * 100) / ym) || 0;
 }
 
 function pooledMean(pts) {

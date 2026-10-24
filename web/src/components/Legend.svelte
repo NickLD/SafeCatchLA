@@ -1,12 +1,11 @@
 <script>
   import { ALL_SPECIES, EPA_GUIDELINE_PPM } from '../lib/config.js';
-  import { legendFor, MODE_LABELS } from '../lib/coloring.js';
+  import { MODE_LABELS } from '../lib/coloring.js';
   import { displaySpecies } from '../lib/format.js';
   import { app } from '../lib/state.svelte.js';
   import Thermometer from './Thermometer.svelte';
 
   let open = $state(false);
-  let items = $derived(legendFor(app.color));
   let mixed = $derived(app.filter === ALL_SPECIES && ['avg', 'latest', 'trend'].includes(app.color));
 </script>
 
@@ -15,22 +14,20 @@
     <b>{MODE_LABELS[app.color]}</b>
     <button onclick={() => (open = !open)} aria-expanded={open} aria-label="About these colors">ⓘ</button>
   </div>
-  <div class="sub">{mixed ? 'All species (mixed)' : app.filter === ALL_SPECIES ? 'All species' : displaySpecies(app.filter)}</div>
-  {#if items}
-    <ul>
-      {#each items as item (item.key)}
-        <li><span class="dot" style:background={item.color}></span>{item.label}</li>
-      {/each}
-    </ul>
-  {:else}
-    <Thermometer />
-    <div class="nodata"><span class="dot" style:background="#9e9e9e"></span>No recent data</div>
-  {/if}
+  <div class="sub">
+    Fish-tissue mercury · {mixed ? 'All species (mixed)' : app.filter === ALL_SPECIES ? 'All species' : displaySpecies(app.filter)}
+  </div>
+  <Thermometer />
+  <div class="nodata"><span class="dot hollow"></span>{app.color === 'trend' ? 'Too few years to tell' : 'No recent data'}</div>
   {#if open}
     <p>
       {#if app.color === 'avg' || app.color === 'latest'}
         Blue is below the EPA guideline ({EPA_GUIDELINE_PPM} ppm) and red is above it; the deeper the color, the
         further away. Drag the handles to set where the deepest colors are reached.
+      {:else if app.color === 'trend'}
+        How fast mercury has changed at each site, as percent per decade. Grey is no change, blue is falling
+        (improving) and red is rising (worsening). Needs at least 3 sampled years spanning 5+ years.
+        Drag the handles to set how much change gets the deepest colors.
       {:else}
         Drag the handles to set the range the colors span.
       {/if}
@@ -56,5 +53,6 @@
   .dot { display: inline-block; width: 12px; min-width: 12px; height: 12px; border-radius: 50%; border: 1px solid rgba(0, 0, 0, 0.25); flex-shrink: 0; }
   p { margin: 6px 0 0; }
   .nodata { display: flex; align-items: center; gap: 6px; margin-top: 2px; }
+  .hollow { background: transparent; border: 1.5px solid #757575; }
   .src { color: var(--muted); font-size: 11px; }
 </style>

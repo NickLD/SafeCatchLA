@@ -25,3 +25,11 @@ test('age thermometer has no EPA marker', () => {
   expect(screen.queryByText('EPA 0.3')).toBeNull();
   expect(screen.getByText('30+ yrs ago')).toBeTruthy();
 });
+
+test('trend thermometer marks no change and labels the ends', () => {
+  app.color = 'trend';
+  render(Thermometer);
+  expect(screen.getByText('No change')).toBeTruthy();
+  expect(screen.getByText('−50% improving')).toBeTruthy();
+  expect(screen.getByText('+50% worsening')).toBeTruthy();
+});

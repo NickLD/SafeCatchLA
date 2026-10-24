@@ -70,7 +70,13 @@
       const m = markers.get(site.id);
       if (!m) continue;
       const isSel = site.id === selected;
-      m.setStyle({ fillColor: colorSite(site, ctx).color, color: isSel ? '#000' : OUTLINE, weight: isSel ? 3 : 1 });
+      const c = colorSite(site, ctx);
+      // No data is a hollow ring so it can't be mistaken for a grey "no change" on the trend scale.
+      const none = c.key === 'nodata';
+      m.setStyle({
+        fillColor: none ? '#ffffff' : c.color, fillOpacity: none ? 0.35 : 0.95,
+        color: isSel ? '#000' : none ? '#757575' : OUTLINE, weight: isSel ? 3 : none ? 1.5 : 1,
+      });
       m.setRadius(isSel ? radius + 3 : radius);
       if (isSel) m.bringToFront();
     }
