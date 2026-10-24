@@ -1,5 +1,5 @@
 .superpowers/
-data/
+/data/
 node_modules/
 web/dist/
 __pycache__/
