@@ -8,6 +8,8 @@ from datetime import date, datetime
 
 PPM_UNITS = {"ppm", "ug/g", "mg/kg"}
 VALID_BASINS = {f"{n:02d}" for n in range(1, 13)}
+# The app is about fish; these tissue samples are shellfish.
+SHELLFISH = {"BLUE CRAB", "EASTERN OYSTER", "WHITE SHRIMP", "RED SWAMP CRAWFISH", "CRAWFISH FAT"}
 
 
 @dataclass(frozen=True)
@@ -43,6 +45,9 @@ def parse_samples(rows):
             continue
         if not r.get("TAXA_COMMON_NAME"):
             skipped["no_species"] += 1
+            continue
+        if r["TAXA_COMMON_NAME"] in SHELLFISH:
+            skipped["shellfish"] += 1
             continue
         if (r.get("UNITS") or "").lower() not in PPM_UNITS:
             skipped["unit"] += 1

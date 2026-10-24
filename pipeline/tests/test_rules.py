@@ -85,3 +85,9 @@ def test_basin_code():
     assert basin_code("LA120101_00") == "12"
     assert basin_code("LA000000_00") is None
     assert basin_code(None) is None
+
+
+def test_excludes_shellfish():
+    rows = [row(TAXA_COMMON_NAME=t) for t in ("BLUE CRAB", "EASTERN OYSTER", "WHITE SHRIMP", "RED SWAMP CRAWFISH", "CRAWFISH FAT")]
+    s, skipped = parse_samples(rows + [row(TAXA_COMMON_NAME="BOWFIN EGGS")])
+    assert [x.species for x in s] == ["BOWFIN EGGS"] and skipped["shellfish"] == 5

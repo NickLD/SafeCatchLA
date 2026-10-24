@@ -40,7 +40,7 @@
     initFromHash();
     try {
       const [sites, meta, national] = await Promise.all([loadSites(), loadMeta(), loadNational()]);
-      Object.assign(app, { sites: sites.sites, latestYear: sites.latestYear, meta, national });
+      Object.assign(app, { sites: sites.sites, latestYear: sites.latestYear, sizeClasses: sites.sizeClasses ?? {}, meta, national });
       status = 'ready';
       const fixes = sanitizeState(app, app.sites);
       if (Object.keys(fixes).length) update(fixes);

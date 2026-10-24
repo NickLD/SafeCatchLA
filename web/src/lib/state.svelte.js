@@ -1,7 +1,7 @@
 // App-wide state, mirrored into location.hash so any view can be shared as a link.
 import { DEFAULTS, parseHash, toHash } from './urlState.js';
 
-export const app = $state({ ...DEFAULTS, sites: [], latestYear: null, meta: null, national: null });
+export const app = $state({ ...DEFAULTS, sites: [], latestYear: null, sizeClasses: {}, meta: null, national: null });
 
 export function initFromHash() {
   Object.assign(app, parseHash(location.hash));

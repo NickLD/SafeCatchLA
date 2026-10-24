@@ -1,71 +1,137 @@
 <script>
   import { EPA_GUIDELINE_PPM } from '../lib/config.js';
   import { formatPpm } from '../lib/format.js';
+  import { classLabel, describeSample, SIZE_CLASSES, SIZE_COLORS, sizeClass, yearsFromSamples } from '../lib/size.js';
   import { yearlyMeans } from '../lib/stats.js';
 
-  // years: full history for one species at this site; samples: individual results (optional);
+  // years: full history for one species at this site (used until samples load);
+  // samples: individual results from the site detail file; cuts: [smallMax, mediumMax] lengths in cm, or undefined;
   // stateAvg: Louisiana mean for the selected period, or null.
-  let { years, samples = [], stateAvg = null } = $props();
+  let { years, samples = [], stateAvg = null, cuts } = $props();
 
-  const W = 340, H = 170, L = 34, R = 8, T = 10, B = 22;
-  let pts = $derived(yearlyMeans(years));
-  let x0 = $derived(pts.length ? pts[0].year : 2000);
-  let x1 = $derived(pts.length && pts.at(-1).year > x0 ? pts.at(-1).year : x0 + 1);
-  let maxData = $derived(Math.max(0, ...pts.map((p) => p.mean), ...samples.map((s) => s.value ?? 0)));
-  let yMax = $derived(Math.max(maxData * 1.2, EPA_GUIDELINE_PPM + 0.05, stateAvg ? stateAvg * 1.2 : 0));
-  let selected = $state(null);
+  const W = 340, H = 220, L = 34, R = 8, T = 14, B = 22;
+  let hidden = $state(new Set());
+  let selected = $state(null); // { kind: 'year', p } | { kind: 'sample', s, x, y }
+
+  let classed = $derived(samples.map((s) => ({ ...s, cls: sizeClass(s.lengthCm, cuts) })));
+  let visible = $derived(classed.filter((s) => !s.cls || !hidden.has(s.cls)));
+  let pts = $derived(yearlyMeans(samples.length ? yearsFromSamples(visible) : years));
+  let allPts = $derived(yearlyMeans(years));
+  let x0 = $derived(allPts.length ? allPts[0].year : 2000);
+  let x1 = $derived(allPts.length && allPts.at(-1).year > x0 ? allPts.at(-1).year : x0 + 1);
+  let maxData = $derived(Math.max(0, ...allPts.map((p) => p.mean), ...samples.map((s) => s.value ?? 0)));
+  let yMax = $derived(Math.max(maxData * 1.1, EPA_GUIDELINE_PPM + 0.05, stateAvg ? stateAvg * 1.2 : 0));
+  let present = $derived(SIZE_CLASSES.filter((c) => classed.some((s) => s.cls === c)));
 
   const sx = (year) => L + ((year - x0) / (x1 - x0)) * (W - L - R);
   const sy = (v) => T + (1 - v / yMax) * (H - T - B);
   const ticks = (max) => [0, max / 2, max].map((v) => Math.round(v * 100) / 100);
+  // Spread same-year samples across the year so they don't stack on one vertical line.
+  const sampleX = (s) => sx(Number(s.date.slice(0, 4)) + (Number(s.date.slice(5, 7)) - 6.5) / 12);
+
+  function toggle(cls) {
+    const next = new Set(hidden);
+    if (next.has(cls)) next.delete(cls);
+    else next.add(cls);
+    hidden = next;
+    if (selected?.kind === 'sample' && next.has(selected.s.cls)) selected = null;
+  }
+
+  function pick(item) {
+    selected = item;
+  }
 </script>
 
 <figure>
-  <svg viewBox="0 0 {W} {H}" role="img" aria-label="Yearly average mercury over time">
-    {#each ticks(yMax) as t (t)}
-      <line x1={L} x2={W - R} y1={sy(t)} y2={sy(t)} class="grid" />
-      <text x={L - 4} y={sy(t) + 3} text-anchor="end" class="tick">{t}</text>
-    {/each}
-    <text x={L} y={H - 6} class="tick">{x0}</text>
-    <text x={W - R} y={H - 6} text-anchor="end" class="tick">{x1}</text>
+  {#if present.length}
+    <div class="chips" role="group" aria-label="Fish size">
+      {#each present as cls (cls)}
+        <button class="chip" aria-pressed={!hidden.has(cls)} onclick={() => toggle(cls)} style:--c={SIZE_COLORS[cls]}>
+          <span class="swatch"></span>{classLabel(cls, cuts)}
+        </button>
+      {/each}
+    </div>
+  {/if}
+  <div class="wrap">
+    <svg viewBox="0 0 {W} {H}" role="img" aria-label="Mercury over time, by sample">
+      {#each ticks(yMax) as t (t)}
+        <line x1={L} x2={W - R} y1={sy(t)} y2={sy(t)} class="grid" />
+        <text x={L - 4} y={sy(t) + 3} text-anchor="end" class="tick">{t}</text>
+      {/each}
+      <text x={L} y={H - 6} class="tick">{x0}</text>
+      <text x={W - R} y={H - 6} text-anchor="end" class="tick">{x1}</text>
 
-    <line x1={L} x2={W - R} y1={sy(EPA_GUIDELINE_PPM)} y2={sy(EPA_GUIDELINE_PPM)} class="epa" />
-    <text x={L + 4} y={sy(EPA_GUIDELINE_PPM) + 11} class="lbl epa-t">EPA guideline (0.3 ppm)</text>
-    {#if stateAvg !== null}
-      <line x1={L} x2={W - R} y1={sy(stateAvg)} y2={sy(stateAvg)} class="state" />
-      <text x={W - R} y={sy(stateAvg) - 3} text-anchor="end" class="lbl">Louisiana avg {formatPpm(stateAvg)}</text>
-    {/if}
+      <line x1={L} x2={W - R} y1={sy(EPA_GUIDELINE_PPM)} y2={sy(EPA_GUIDELINE_PPM)} class="epa" />
+      {#if stateAvg !== null}
+        <line x1={L} x2={W - R} y1={sy(stateAvg)} y2={sy(stateAvg)} class="state" />
+      {/if}
 
-    {#each samples as s, i (i)}
-      <circle cx={sx(Number(s.date.slice(0, 4)) + 0.5 * ((i % 5) - 2) / 10)} cy={sy(s.value ?? 0)} r="1.8" class="sample" />
-    {/each}
-    <polyline points={pts.map((p) => `${sx(p.year)},${sy(p.mean)}`).join(' ')} class="line" />
-    {#each pts as p (p.year)}
-      <circle cx={sx(p.year)} cy={sy(p.mean)} r={selected?.year === p.year ? 6 : 4} class="pt"
-              role="button" tabindex="0" aria-label="{p.year}: {formatPpm(p.mean)} ppm"
-              onclick={() => (selected = p)} onkeydown={(e) => e.key === 'Enter' && (selected = p)} />
-    {/each}
-  </svg>
-  <figcaption>
-    {#if selected}
-      {selected.year}: {formatPpm(selected.mean)} ppm ({selected.n} {selected.n === 1 ? 'sample' : 'samples'})
+      {#if selected}
+        <line x1={selected.x} x2={selected.x} y1={T - 6} y2={selected.y} class="pointer" />
+        <circle cx={selected.x} cy={selected.y} r="8" class="ring" />
+      {/if}
+
+      {#each visible as s, i (i)}
+        {@const x = sampleX(s)}
+        {@const y = sy(s.value ?? 0)}
+        <circle cx={x} cy={y} r="4" class="sample" style:fill={s.cls ? SIZE_COLORS[s.cls] : '#9e9e9e'}
+                role="button" tabindex="0" aria-label={describeSample(s)}
+                onclick={() => pick({ kind: 'sample', s, x, y })}
+                onkeydown={(e) => e.key === 'Enter' && pick({ kind: 'sample', s, x, y })} />
+      {/each}
+      <polyline points={pts.map((p) => `${sx(p.year)},${sy(p.mean)}`).join(' ')} class="line" />
+      {#each pts as p (p.year)}
+        <circle cx={sx(p.year)} cy={sy(p.mean)} r="4.5" class="pt"
+                role="button" tabindex="0" aria-label="{p.year}: {formatPpm(p.mean)} ppm"
+                onclick={() => pick({ kind: 'year', p, x: sx(p.year), y: sy(p.mean) })}
+                onkeydown={(e) => e.key === 'Enter' && pick({ kind: 'year', p, x: sx(p.year), y: sy(p.mean) })} />
+      {/each}
+    </svg>
+  </div>
+  <div class="key">
+    <span><i class="k-epa"></i>EPA guideline (0.3 ppm)</span>
+    {#if stateAvg !== null}<span><i class="k-state"></i>Louisiana avg {formatPpm(stateAvg)}</span>{/if}
+    <span><i class="k-line"></i>Yearly average</span>
+    {#if classed.some((s) => !s.cls)}<span><i class="k-dot"></i>Size not recorded</span>{/if}
+  </div>
+  <figcaption role="status">
+    {#if selected?.kind === 'sample'}
+      <b>{describeSample(selected.s)}</b>{#if selected.s.cls}<span class="cls" style:--c={SIZE_COLORS[selected.s.cls]}>{classLabel(selected.s.cls, cuts)}</span>{/if}
+    {:else if selected?.kind === 'year'}
+      <b>{selected.p.year}: {formatPpm(selected.p.mean)} ppm average</b> ({selected.p.n} {selected.p.n === 1 ? 'sample' : 'samples'})
     {:else}
-      Tap a point for that year's average. Faint dots are individual samples.
+      Dots are individual samples, colored by fish size. The line is the yearly average. Tap any point for details.
     {/if}
   </figcaption>
 </figure>
 
 <style>
   figure { margin: 0; }
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; margin: 4px 0 6px; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 5px; min-height: 32px; padding: 0 10px; border-radius: 16px;
+    border: 1px solid var(--border); background: var(--surface); color: var(--text); font-size: 12px; cursor: pointer;
+  }
+  .chip[aria-pressed='false'] { opacity: 0.45; text-decoration: line-through; }
+  .swatch { width: 10px; height: 10px; border-radius: 50%; background: var(--c); }
   svg { width: 100%; height: auto; display: block; }
   .grid { stroke: var(--border); stroke-width: 0.5; }
   .tick { font-size: 9px; fill: var(--muted); }
-  .lbl { font-size: 9px; fill: var(--muted); }
   .epa { stroke: #d7191c; stroke-dasharray: 4 3; }
-  .epa-t { fill: #d7191c; }
+  .key { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .key span { display: inline-flex; align-items: center; gap: 4px; }
+  .key i { display: inline-block; width: 16px; height: 0; }
+  .k-epa { border-top: 2px dashed #d7191c; }
+  .k-state { border-top: 2px dotted var(--muted); }
+  .k-line { border-top: 2px solid var(--text); opacity: 0.7; }
+  .key .k-dot { width: 8px; height: 8px; border-radius: 50%; background: #9e9e9e; }
   .state { stroke: var(--muted); stroke-dasharray: 2 2; }
-  .sample { fill: var(--accent); opacity: 0.25; }
-  .line { fill: none; stroke: var(--accent); stroke-width: 2; }
-  .pt { fill: var(--accent); stroke: var(--surface); stroke-width: 1.5; cursor: pointer; }
-  figcaption { font-size: 12px; color: var(--muted); min-height: 1.4em; }
+  .sample { opacity: 0.75; stroke: var(--surface); stroke-width: 0.8; cursor: pointer; }
+  .line { fill: none; stroke: var(--text); stroke-width: 1.5; opacity: 0.7; }
+  .pt { fill: var(--text); stroke: var(--surface); stroke-width: 1.5; cursor: pointer; }
+  .pointer { stroke: var(--text); stroke-width: 1; stroke-dasharray: 2 2; }
+  .ring { fill: none; stroke: var(--text); stroke-width: 1.5; }
+  figcaption { font-size: 12px; color: var(--muted); min-height: 2.6em; margin-top: 2px; }
+  figcaption b { color: var(--text); font-weight: 600; }
+  .cls { display: inline-block; margin-left: 6px; padding: 0 6px; border-radius: 8px; color: #fff; background: var(--c); font-size: 11px; }
 </style>

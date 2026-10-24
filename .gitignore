@@ -8,3 +8,4 @@ __pycache__/
 web/test-results/
 web/playwright-report/
 web/.shot.mjs
+web/.shot2.mjs

@@ -73,3 +73,11 @@ def test_preserves_other_files_in_out_dir(tmp_path):
     (tmp_path / "national.json").write_text("{}")
     build(ROWS, SITE_ROWS, tmp_path, date(2026, 10, 24))
     assert (tmp_path / "national.json").exists()
+
+
+def test_size_class_cutoffs_are_species_thirds(tmp_path):
+    rows = [row(SITE="0001", SITE_NAME="A", LAT_WGS84=30.0, LON_WGS84=-91.0, AVERAGE_FISH_LENGTH=float(n)) for n in range(1, 10)]
+    rows += [row(SITE="0001", SITE_NAME="A", LAT_WGS84=30.0, LON_WGS84=-91.0, TAXA_COMMON_NAME="BOWFIN", AVERAGE_FISH_LENGTH=40.0)]
+    build(rows, [], tmp_path, date(2026, 10, 24))
+    d = json.loads((tmp_path / "sites.json").read_text())
+    assert d["sizeClasses"] == {"LARGEMOUTH BASS": [4.0, 6.0]}  # BOWFIN has too few lengths

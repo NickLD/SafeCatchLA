@@ -17,6 +17,7 @@ ROOT = Path(__file__).resolve().parent.parent
 RAW = ROOT / "data" / "raw"
 OUT = ROOT / "web" / "public" / "data"
 GUIDELINE_PPM = 0.3
+MIN_LENGTHS_FOR_SIZE_CLASSES = 9
 
 
 def _r(v):
@@ -39,6 +40,22 @@ def _site_info(mercury_rows):
         if r.get("PARAMETER") == "MERCURY" and r.get("MATRIX") == "TE" and r["SITE"] not in info:
             info[r["SITE"]] = r
     return info
+
+
+def size_class_cutoffs(samples):
+    """Per-species length cutoffs (cm) splitting Louisiana samples into thirds: small / medium / large."""
+    lengths = defaultdict(list)
+    for s in samples:
+        if s.length_cm:
+            lengths[s.species].append(s.length_cm)
+    cutoffs = {}
+    for species, ls in sorted(lengths.items()):
+        if len(ls) < MIN_LENGTHS_FOR_SIZE_CLASSES:
+            continue
+        ls.sort()
+        n = len(ls) - 1
+        cutoffs[species] = [ls[round(n / 3)], ls[round(2 * n / 3)]]
+    return cutoffs
 
 
 def build(mercury_rows, site_rows, out_dir, today):
@@ -91,6 +108,7 @@ def build(mercury_rows, site_rows, out_dir, today):
     sites_text = _dump({
         "latestYear": max(s.date.year for s in samples) if samples else None,
         "sites": [sites[k] for k in sorted(sites)],
+        "sizeClasses": size_class_cutoffs(samples),
     })
     detail_texts = {k: _dump(details[k]) for k in sorted(details)}
     digest = hashlib.sha256(sites_text.encode())

@@ -94,7 +94,7 @@
     <Disclaimer />
 
     <h3>{displaySpecies(species)} over time</h3>
-    <TrendChart years={entry.years} {samples} {stateAvg} />
+    <TrendChart years={entry.years} {samples} {stateAvg} cuts={app.sizeClasses[species]} />
 
     <CompareBars {site} {national} {period} {latestYear} />
     <AllSpeciesList {site} {period} {latestYear} />
@@ -108,7 +108,7 @@
     border-radius: 16px 16px 0 0; box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.25);
     display: flex; flex-direction: column; transition: height 0.2s ease;
   }
-  .sheet.peek { height: 45dvh; }
+  .sheet.peek { height: 55dvh; }
   .sheet.expanded { height: 92dvh; }
   .handle {
     border: 0; background: none; width: 100%; padding: 8px 0 4px; cursor: grab; touch-action: none; flex-shrink: 0;
@@ -128,7 +128,7 @@
 
   @media (min-width: 768px) {
     .sheet, .sheet.peek, .sheet.expanded {
-      left: auto; top: 0; width: 400px; height: 100dvh; border-radius: 0; box-shadow: -4px 0 16px rgba(0, 0, 0, 0.2);
+      left: auto; top: 0; width: min(560px, 50vw); height: 100dvh; border-radius: 0; box-shadow: -4px 0 16px rgba(0, 0, 0, 0.2);
     }
     .handle { display: none; }
     .body { padding-top: 14px; }
