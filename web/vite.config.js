@@ -3,7 +3,7 @@ import { defineConfig } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
-  base: process.env.BASE_PATH ?? '/SafeCatchLA/',
+  base: process.env.BASE_PATH ?? '/', // served from safecatchla.com
   plugins: [
     svelte(),
     VitePWA({

@@ -30,9 +30,11 @@ cd web
 npm install
 npm test                 # unit tests
 npx playwright install chromium && npm run e2e   # phone-sized smoke tests
-npm run dev              # http://localhost:5173/SafeCatchLA/
+npm run dev              # http://localhost:5173/
 ```
 
-To serve from a custom domain instead of `/SafeCatchLA/`, build with `BASE_PATH=/ npm run build` and add a `CNAME` file to `web/public/`.
+Live at https://safecatchla.com (GitHub Pages; `web/public/CNAME` sets the domain). To serve from a subpath such as `https://<user>.github.io/SafeCatchLA/` instead, build with `BASE_PATH=/SafeCatchLA/ npm run build` and remove `CNAME`.
+
+One-time GitHub setup: Settings → Pages → Source: **GitHub Actions**.
 
 `fetch_ldeq.py` is an exploration tool that can download other LDEQ water-quality datasets. The app doesn't use it.
