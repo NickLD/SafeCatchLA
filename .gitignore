@@ -1,0 +1,9 @@
+.superpowers/
+data/
+node_modules/
+web/dist/
+__pycache__/
+.venv/
+.pytest_cache/
+web/test-results/
+web/playwright-report/
