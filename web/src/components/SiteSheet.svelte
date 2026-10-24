@@ -6,6 +6,7 @@
   import { groupMean, speciesWithData } from '../lib/stats.js';
   import AllSpeciesList from './AllSpeciesList.svelte';
   import CompareBars from './CompareBars.svelte';
+  import DataSource from './DataSource.svelte';
   import Disclaimer from './Disclaimer.svelte';
   import HeadlineStats from './HeadlineStats.svelte';
   import SpeciesChips from './SpeciesChips.svelte';
@@ -103,6 +104,7 @@
 
     <CompareBars {site} {national} {period} {latestYear} options={shown} selected={species} />
     <AllSpeciesList {site} {period} {latestYear} />
+    <DataSource siteId={site.id} updated={app.meta?.updated} />
   </div>
 </aside>
 

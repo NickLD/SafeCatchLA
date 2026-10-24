@@ -130,3 +130,12 @@ test('a site with nothing in the period still offers all its species', () => {
   const chips = screen.getByRole('radiogroup', { name: 'Species' });
   expect(within(chips).getAllByRole('radio')).toHaveLength(2);
 });
+
+test('drawer credits LDEQ with links and an independence disclaimer', () => {
+  renderSheet();
+  expect(screen.getByRole('link', { name: /this site's records on LDEQ/ }).getAttribute('href'))
+    .toBe('https://waterdata.deq.louisiana.gov/Collection_Data/WQ1994001/0001');
+  expect(screen.getByRole('link', { name: /LDEQ mercury database/ }).getAttribute('href'))
+    .toBe('https://waterdata.deq.louisiana.gov/MercuryData');
+  expect(screen.getByText(/not affiliated with or endorsed by LDEQ, LDH or EPA/)).toBeTruthy();
+});

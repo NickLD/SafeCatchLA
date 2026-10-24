@@ -4,6 +4,9 @@ export const PERIODS = [5, 10, 20, 'all'];
 export const DEFAULT_PERIOD = 10;
 export const PERIOD_LABELS = { 5: 'Last 5 yrs', 10: 'Last 10 yrs', 20: 'Last 20 yrs', all: 'All years' };
 export const LDH_ADVISORIES_URL = 'https://ldh.la.gov/page/2629';
+export const DEQ_MERCURY_URL = 'https://waterdata.deq.louisiana.gov/MercuryData';
+export const deqSiteUrl = (id) => `https://waterdata.deq.louisiana.gov/Collection_Data/WQ1994001/${encodeURIComponent(id)}`;
+export const EPA_NLA_URL = 'https://www.epa.gov/choose-fish-and-shellfish-wisely/2022-national-lakes-assessment-fish-tissue-study';
 export const NATIONAL_MIN_N = 5;
 export const ALL_SPECIES = 'ALL';
 // What the map measures. Only mercury today; every color mode and stat is implicitly for this contaminant.

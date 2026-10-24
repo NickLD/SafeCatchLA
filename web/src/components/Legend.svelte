@@ -1,5 +1,5 @@
 <script>
-  import { ALL_SPECIES, CONTAMINANTS, EPA_GUIDELINE_PPM } from '../lib/config.js';
+  import { ALL_SPECIES, CONTAMINANTS, DEQ_MERCURY_URL, EPA_GUIDELINE_PPM, EPA_NLA_URL } from '../lib/config.js';
   import { MODE_LABELS } from '../lib/coloring.js';
   import { displaySpecies } from '../lib/format.js';
   import { app } from '../lib/state.svelte.js';
@@ -35,7 +35,11 @@
     </p>
   {/if}
   {#if app.meta}
-    <p class="src">Data: Louisiana DEQ, updated {app.meta.updated} · National: EPA 2022</p>
+    <p class="src">
+      Data: <a href={DEQ_MERCURY_URL} target="_blank" rel="noopener">Louisiana DEQ</a>, updated {app.meta.updated} ·
+      National: <a href={EPA_NLA_URL} target="_blank" rel="noopener">EPA 2022</a>.
+      Independent project; not affiliated with LDEQ.
+    </p>
   {/if}
 </div>
 
@@ -53,4 +57,5 @@
   .nodata { display: flex; align-items: center; gap: 6px; margin-top: 2px; }
   .hollow { background: transparent; border: 1.5px solid #757575; }
   .src { color: var(--muted); font-size: 11px; }
+  .src a { color: inherit; }
 </style>
