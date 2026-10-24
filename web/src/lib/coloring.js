@@ -2,15 +2,14 @@
 import { ALL_SPECIES, EPA_GUIDELINE_PPM, NEAR_LOWER_PPM } from './config.js';
 import { periodMean, periodStartYear, speciesYears, trendClass } from './stats.js';
 
-export const MODES = ['avg', 'latest', 'age', 'trend', 'count'];
+export const MODES = ['avg', 'latest', 'age', 'trend'];
 export const MODE_LABELS = {
-  avg: 'Avg mercury vs EPA guideline',
+  avg: 'Average mercury concentration',
   latest: 'Most recent sample',
   age: 'Age of last sample',
   trend: 'Trend',
-  count: 'Number of samples',
 };
-export const MODE_SHORT = { avg: 'Avg vs EPA', latest: 'Latest', age: 'Sample age', trend: 'Trend', count: 'Samples' };
+export const MODE_SHORT = { avg: 'Avg mercury', latest: 'Latest mercury', age: 'Sample age', trend: 'Trend' };
 
 const NODATA_COLOR = '#9e9e9e';
 // ColorBrewer RdYlBu, split at the EPA guideline: blue side below it, red side above it.
@@ -29,10 +28,6 @@ export const SCALES = {
   age: {
     kind: 'sequential', colors: BLUES_DARK_TO_LIGHT, range: [0, 30], minBounds: [0, 29], maxBounds: [1, 60], step: 1,
     handles: ['Darkest at', 'Lightest at'], unit: 'yrs ago',
-  },
-  count: {
-    kind: 'sequential', colors: [...BLUES_DARK_TO_LIGHT].reverse(), range: [1, 50], minBounds: [1, 49], maxBounds: [2, 400], step: 1,
-    handles: ['Lightest at', 'Darkest at'], unit: 'samples',
   },
 };
 
@@ -111,8 +106,6 @@ function siteValue(site, entries, { mode, species, period, latestYear, today }) 
     }
     case 'age':
       return (today - new Date(latestOf(entries)[0])) / (365.25 * 24 * 3600 * 1000);
-    case 'count':
-      return entries.reduce((a, e) => a + e.n, 0);
     default:
       throw new Error(`unknown color mode ${mode}`);
   }

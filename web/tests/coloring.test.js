@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { colorSite, gradientStops, legendFor, mercuryBand, scaleColor, SCALES } from '../src/lib/coloring.js';
+import { colorSite, gradientStops, legendFor, MODE_LABELS, MODE_SHORT, MODES, mercuryBand, scaleColor, SCALES } from '../src/lib/coloring.js';
 
 const site = {
   last: '2016-09-14',
@@ -31,10 +31,10 @@ test('age scale: recent is dark, old is light', () => {
   expect(scaleColor('age', 45, [0, 30])).toBe('#c6dbef');
 });
 
-test('count scale: few is light, many is dark', () => {
-  expect(scaleColor('count', 1, [1, 50])).toBe('#c6dbef');
-  expect(scaleColor('count', 50, [1, 50])).toBe('#08306b');
-  expect(scaleColor('count', 300, [1, 50])).toBe('#08306b');
+test('color modes and their names', () => {
+  expect(MODES).toEqual(['avg', 'latest', 'age', 'trend']);
+  expect(MODE_SHORT.avg).toBe('Avg mercury');
+  expect(MODE_LABELS.avg).toBe('Average mercury concentration');
 });
 
 test('colorSite uses the smooth scales with the default range', () => {
@@ -42,7 +42,6 @@ test('colorSite uses the smooth scales with the default range', () => {
   expect(avg).toEqual({ key: 'value', value: 0.57, color: scaleColor('avg', 0.57, SCALES.avg.range) });
   expect(colorSite(site, { ...ctx, mode: 'latest' }).value).toBe(0.31);
   expect(colorSite(site, { ...ctx, mode: 'age' }).value).toBeCloseTo(10.11, 1);
-  expect(colorSite(site, { ...ctx, mode: 'count' }).value).toBe(3);
   expect(colorSite(site, { ...ctx, mode: 'trend' }).key).toBe('insufficient');
 });
 
@@ -52,7 +51,7 @@ test('colorSite respects a custom range', () => {
 
 test('colorSite with ALL species pools all species', () => {
   const two = { last: '2024-01-01', species: { ...site.species, C: { n: 60, latest: ['2024-01-01', 0.1, 1], years: { '2024': [6, 60] } } } };
-  expect(colorSite(two, { ...ctx, species: 'ALL', mode: 'count' }).value).toBe(63);
+  expect(colorSite(two, { ...ctx, species: 'ALL', mode: 'age' }).value).toBeCloseTo(2.8, 1);
   expect(colorSite(two, { ...ctx, species: 'ALL', mode: 'latest' }).value).toBe(0.1);
 });
 
@@ -60,7 +59,7 @@ test('colorSite no recent data', () => {
   expect(colorSite(site, { ...ctx, period: 5, mode: 'avg' })).toEqual({ key: 'nodata', color: '#9e9e9e' });
   expect(colorSite(site, { ...ctx, period: 5, mode: 'latest' }).key).toBe('nodata');
   expect(colorSite(site, { ...ctx, species: 'OTHER', mode: 'avg' }).key).toBe('nodata');
-  expect(colorSite(site, { ...ctx, species: 'OTHER', mode: 'count' }).key).toBe('nodata');
+  expect(colorSite(site, { ...ctx, species: 'OTHER', mode: 'age' }).key).toBe('nodata');
 });
 
 test('legendFor lists categories for trend only', () => {

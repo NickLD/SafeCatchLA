@@ -5,6 +5,7 @@ test('parseHash valid', () => {
   expect(parseHash('#site=0436&species=LARGEMOUTH%20BASS&period=all&color=age&filter=BOWFIN'))
     .toEqual({ site: '0436', species: 'LARGEMOUTH BASS', filter: 'BOWFIN', period: 'all', color: 'age', compare: null, range: null });
   expect(parseHash('#period=5').period).toBe(5);
+  expect(parseHash('#color=count').color).toBe('avg'); // removed mode in an old link
 });
 
 test('parseHash ignores bad values', () => {
