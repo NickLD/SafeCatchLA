@@ -6,7 +6,7 @@
   import Thermometer from './Thermometer.svelte';
 
   let open = $state(false);
-  let mixed = $derived(app.filter === ALL_SPECIES && ['avg', 'latest', 'trend'].includes(app.color));
+  let mixed = $derived(app.filter === ALL_SPECIES && ['avg', 'trend'].includes(app.color));
 </script>
 
 <div class="legend">
@@ -21,7 +21,7 @@
   <div class="nodata"><span class="dot hollow"></span>{app.color === 'trend' ? 'Too few years to tell' : 'No recent data'}</div>
   {#if open}
     <p>
-      {#if app.color === 'avg' || app.color === 'latest'}
+      {#if app.color === 'avg'}
         Blue is below the EPA guideline ({EPA_GUIDELINE_PPM} ppm) and red is above it; the deeper the color, the
         further away. Drag the handles to set where the deepest colors are reached.
       {:else if app.color === 'trend'}

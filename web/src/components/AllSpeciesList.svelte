@@ -11,7 +11,7 @@
   let withData = $derived(entries.filter((e) => e.m).sort((a, b) => b.m.mean - a.m.mean));
   let without = $derived(entries.filter((e) => !e.m));
   // Same colors as the map's mercury thermometer, including a custom range if one is set.
-  let colorRange = $derived((['avg', 'latest'].includes(app.color) && app.range) || SCALES.avg.range);
+  let colorRange = $derived((app.color === 'avg' && app.range) || SCALES.avg.range);
   let max = $derived(Math.max(EPA_GUIDELINE_PPM * 1.2, ...withData.map((e) => e.m.mean)));
 </script>
 

@@ -16,7 +16,7 @@ test('mercury scale is pinned at the EPA guideline', () => {
   expect(scaleColor('avg', 0, [0, 1])).toBe('#4575b4');
   expect(scaleColor('avg', 1, [0, 1])).toBe('#a50026');
   expect(scaleColor('avg', 0.15, [0, 1])).toBe('#b9d9ea'); // halfway along the blue side
-  expect(scaleColor('latest', 0.3, [0.2, 0.5])).toBe('#ffffbf');
+  expect(scaleColor('avg', 0.3, [0.2, 0.5])).toBe('#ffffbf');
 });
 
 test('values past the range get the end colors', () => {
@@ -32,14 +32,13 @@ test('age scale: recent is dark, old is light', () => {
 });
 
 test('color modes and their names', () => {
-  expect(MODES).toEqual(['avg', 'latest', 'age', 'trend']);
+  expect(MODES).toEqual(['avg', 'age', 'trend']);
   // The contaminant is its own pill, so these are implicitly "for mercury".
   expect(MODE_SHORT).toEqual({
-    avg: 'Avg Concentration Over Time', latest: 'Concentration at Most Recent Sampling Event', age: 'Sample Age', trend: 'Trend',
+    avg: 'Avg Concentration Over Time', age: 'Sample Age', trend: 'Trend',
   });
   expect(MODE_LABELS).toEqual({
     avg: 'Average Concentration Over Time (ppm)',
-    latest: 'Concentration at Most Recent Sampling Event (ppm)',
     age: 'Years Since Last Sample',
     trend: 'Trend (% Change per Decade)',
   });
@@ -48,7 +47,6 @@ test('color modes and their names', () => {
 test('colorSite uses the smooth scales with the default range', () => {
   const avg = colorSite(site, { ...ctx, mode: 'avg' }); // (1.4 + 0.31) / 3 = 0.57
   expect(avg).toEqual({ key: 'value', value: 0.57, color: scaleColor('avg', 0.57, SCALES.avg.range) });
-  expect(colorSite(site, { ...ctx, mode: 'latest' }).value).toBe(0.31);
   expect(colorSite(site, { ...ctx, mode: 'age' }).value).toBeCloseTo(10.11, 1);
   expect(colorSite(site, { ...ctx, mode: 'trend' }).key).toBe('nodata'); // only 2 years
 });
@@ -60,12 +58,11 @@ test('colorSite respects a custom range', () => {
 test('colorSite with ALL species pools all species', () => {
   const two = { last: '2024-01-01', species: { ...site.species, C: { n: 60, latest: ['2024-01-01', 0.1, 1], years: { '2024': [6, 60] } } } };
   expect(colorSite(two, { ...ctx, species: 'ALL', mode: 'age' }).value).toBeCloseTo(2.8, 1);
-  expect(colorSite(two, { ...ctx, species: 'ALL', mode: 'latest' }).value).toBe(0.1);
+  expect(colorSite(two, { ...ctx, species: 'ALL', mode: 'avg' }).value).toBeCloseTo(0.1224, 3); // (1.4 + 0.31 + 6) / 63 pooled
 });
 
 test('colorSite no recent data', () => {
   expect(colorSite(site, { ...ctx, period: 5, mode: 'avg' })).toEqual({ key: 'nodata', color: '#9e9e9e' });
-  expect(colorSite(site, { ...ctx, period: 5, mode: 'latest' }).key).toBe('nodata');
   expect(colorSite(site, { ...ctx, species: 'OTHER', mode: 'avg' }).key).toBe('nodata');
   expect(colorSite(site, { ...ctx, species: 'OTHER', mode: 'age' }).key).toBe('nodata');
 });

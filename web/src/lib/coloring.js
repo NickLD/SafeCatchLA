@@ -1,17 +1,16 @@
 // What a site's map dot color means, for each "Color by" mode.
 import { ALL_SPECIES, EPA_GUIDELINE_PPM, NEAR_LOWER_PPM } from './config.js';
-import { periodMean, periodStartYear, speciesYears, trendPercent } from './stats.js';
+import { periodMean, speciesYears, trendPercent } from './stats.js';
 
-export const MODES = ['avg', 'latest', 'age', 'trend'];
+export const MODES = ['avg', 'age', 'trend'];
 // Labels don't name the contaminant: the Contaminant pill does.
 export const MODE_LABELS = {
   avg: 'Average Concentration Over Time (ppm)',
-  latest: 'Concentration at Most Recent Sampling Event (ppm)',
   age: 'Years Since Last Sample',
   trend: 'Trend (% Change per Decade)',
 };
 export const MODE_SHORT = {
-  avg: 'Avg Concentration Over Time', latest: 'Concentration at Most Recent Sampling Event', age: 'Sample Age', trend: 'Trend',
+  avg: 'Avg Concentration Over Time', age: 'Sample Age', trend: 'Trend',
 };
 
 const NODATA_COLOR = '#9e9e9e';
@@ -30,7 +29,6 @@ const MERCURY_SCALE = {
 // Continuous scales; the range is where the end colors are reached (values beyond clamp).
 export const SCALES = {
   avg: MERCURY_SCALE,
-  latest: MERCURY_SCALE,
   age: {
     kind: 'sequential', colors: BLUES_DARK_TO_LIGHT, range: [0, 30], minBounds: [0, 29], maxBounds: [1, 60], step: 1,
     handles: ['Darkest at', 'Lightest at'], unit: 'yrs ago',
@@ -101,10 +99,6 @@ function siteValue(site, entries, { mode, species, period, latestYear, today }) 
   switch (mode) {
     case 'avg':
       return periodMean(speciesYears(site, species), period, latestYear)?.mean ?? null;
-    case 'latest': {
-      const [date, value] = latestOf(entries);
-      return Number(date.slice(0, 4)) < periodStartYear(period, latestYear) ? null : value;
-    }
     case 'age':
       return (today - new Date(latestOf(entries)[0])) / (365.25 * 24 * 3600 * 1000);
     case 'trend':
