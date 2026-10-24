@@ -5,12 +5,12 @@ import { periodMean, periodStartYear, speciesYears, trendPercent } from './stats
 export const MODES = ['avg', 'latest', 'age', 'trend'];
 export const MODE_LABELS = {
   avg: 'Average Mercury Over Time (ppm)',
-  latest: 'Most Recent Sampling Concentration (ppm)',
+  latest: 'Mercury Concentration at Most Recent Sampling Event (ppm)',
   age: 'Years Since Last Mercury Sample',
   trend: 'Mercury Trend (% Change per Decade)',
 };
 export const MODE_SHORT = {
-  avg: 'Avg Mercury Over Time', latest: 'Most Recent Sampling Concentration', age: 'Sample Age', trend: 'Trend',
+  avg: 'Avg Mercury Over Time', latest: 'Concentration at Most Recent Sampling Event', age: 'Sample Age', trend: 'Trend',
 };
 
 const NODATA_COLOR = '#9e9e9e';

@@ -34,11 +34,11 @@ test('age scale: recent is dark, old is light', () => {
 test('color modes and their names', () => {
   expect(MODES).toEqual(['avg', 'latest', 'age', 'trend']);
   expect(MODE_SHORT).toEqual({
-    avg: 'Avg Mercury Over Time', latest: 'Most Recent Sampling Concentration', age: 'Sample Age', trend: 'Trend',
+    avg: 'Avg Mercury Over Time', latest: 'Concentration at Most Recent Sampling Event', age: 'Sample Age', trend: 'Trend',
   });
   expect(MODE_LABELS).toEqual({
     avg: 'Average Mercury Over Time (ppm)',
-    latest: 'Most Recent Sampling Concentration (ppm)',
+    latest: 'Mercury Concentration at Most Recent Sampling Event (ppm)',
     age: 'Years Since Last Mercury Sample',
     trend: 'Mercury Trend (% Change per Decade)',
   });
