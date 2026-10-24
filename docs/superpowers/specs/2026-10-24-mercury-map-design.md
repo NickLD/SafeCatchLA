@@ -71,6 +71,8 @@ These follow Louisiana's own advisory protocol ("Protocol for Issuing Public Hea
   - **Reporting limit** = `PRACTICAL_QUANTITATION_LIMIT` if > 0, else `MDL` if > 0, else the non-detect counts as zero.
 - **Rejected results:** exclude rows with `VALIDATION_QUALIFIER = R` (26 tissue rows) *(Claude's call: R means rejected in validation)*.
 - **Composite samples:** treat each composite result as one sample, as the protocol does.
+- **Field duplicates** (`LAB_SAMPLE_TYPE = FD`, about 6.5% of tissue rows): QC re-analyses of the same fish or composite. Each is merged into its parent sample, matched on site, species, date, length and weight, so the fish counts once. When several parents match, the merge prefers the same sample-number base. Detected results are averaged; when neither result is detected, the merged sample is a non-detect. An unmatched or ambiguous duplicate is kept as its own sample. *(Added 2026-10-24 after a user question about double-counted fish.)*
+- **Shellfish** (blue crab, eastern oyster, white shrimp, red swamp crawfish, crawfish fat) are excluded; the app covers finfish *(user decision)*.
 
 ## Averaging period
 

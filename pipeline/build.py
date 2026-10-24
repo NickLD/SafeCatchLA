@@ -11,7 +11,7 @@ from collections import defaultdict
 from datetime import date
 from pathlib import Path
 
-from pipeline.rules import basin_code, parse_samples, substitute_nondetects
+from pipeline.rules import basin_code, merge_field_duplicates, parse_samples, substitute_nondetects
 
 ROOT = Path(__file__).resolve().parent.parent
 RAW = ROOT / "data" / "raw"
@@ -61,7 +61,8 @@ def size_class_cutoffs(samples):
 def build(mercury_rows, site_rows, out_dir, today):
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
-    samples, skipped = parse_samples(mercury_rows)
+    parsed, skipped = parse_samples(mercury_rows)
+    samples = merge_field_duplicates(parsed)
     info = _site_info(mercury_rows)
     addresses = {s.get("id"): s.get("address") or "" for s in site_rows}
 
@@ -123,6 +124,7 @@ def build(mercury_rows, site_rows, out_dir, today):
         "dataHash": data_hash,
         "rawTissueRows": sum(1 for r in mercury_rows if r.get("PARAMETER") == "MERCURY" and r.get("MATRIX") == "TE"),
         "samples": len(samples),
+        "mergedDuplicates": len(parsed) - len(samples),
         "sites": len(sites),
         "guidelinePpm": GUIDELINE_PPM,
         "skipped": dict(sorted(skipped.items())),

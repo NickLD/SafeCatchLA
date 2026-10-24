@@ -1,1 +1,1 @@
-{"dataHash":"b09e725724d20323cebc29600b3cbd9d184b653f57790755af50228ea53f1552","guidelinePpm":0.3,"rawTissueRows":19780,"samples":19685,"sites":645,"skipped":{"not_tissue_mercury":32309,"rejected":26,"shellfish":69},"updated":"2026-10-24"}
+{"dataHash":"0dae67dac0ed541e3338e4a5b27b1de694a62e88a465a41cbbc3ab237c8c26fa","guidelinePpm":0.3,"mergedDuplicates":1255,"rawTissueRows":19780,"samples":18430,"sites":645,"skipped":{"not_tissue_mercury":32309,"rejected":26,"shellfish":69},"updated":"2026-10-24"}

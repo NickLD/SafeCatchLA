@@ -81,3 +81,13 @@ def test_size_class_cutoffs_are_species_thirds(tmp_path):
     build(rows, [], tmp_path, date(2026, 10, 24))
     d = json.loads((tmp_path / "sites.json").read_text())
     assert d["sizeClasses"] == {"LARGEMOUTH BASS": [4.0, 6.0]}  # BOWFIN has too few lengths
+
+
+def test_build_merges_field_duplicates(tmp_path):
+    rows = [site1(RESULT=2.31, SAMPLE_NUMBER="1-A", LAB_SAMPLE_TYPE="TRG"),
+            site1(RESULT=2.22, SAMPLE_NUMBER="1-D", LAB_SAMPLE_TYPE="FD")]
+    build(rows, SITE_ROWS, tmp_path, date(2026, 10, 24))
+    bass = json.loads((tmp_path / "sites.json").read_text())["sites"][0]["species"]["LARGEMOUTH BASS"]
+    assert (bass["n"], bass["years"]) == (1, {"2010": [2.265, 1]})
+    m = json.loads((tmp_path / "meta.json").read_text())
+    assert m["mergedDuplicates"] == 1

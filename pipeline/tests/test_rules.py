@@ -1,6 +1,6 @@
 from datetime import date
 
-from pipeline.rules import Sample, basin_code, parse_samples, substitute_nondetects
+from pipeline.rules import Sample, basin_code, merge_field_duplicates, parse_samples, substitute_nondetects
 
 
 def row(**kw):
@@ -91,3 +91,35 @@ def test_excludes_shellfish():
     rows = [row(TAXA_COMMON_NAME=t) for t in ("BLUE CRAB", "EASTERN OYSTER", "WHITE SHRIMP", "RED SWAMP CRAWFISH", "CRAWFISH FAT")]
     s, skipped = parse_samples(rows + [row(TAXA_COMMON_NAME="BOWFIN EGGS")])
     assert [x.species for x in s] == ["BOWFIN EGGS"] and skipped["shellfish"] == 5
+
+
+def test_parses_field_duplicate_flag():
+    [s], _ = parse_samples([row(LAB_SAMPLE_TYPE="FD", SAMPLE_NUMBER="354-030615-08-D")])
+    assert s.duplicate and s.sample_number == "354-030615-08-D"
+
+
+def test_field_duplicate_merges_into_its_parent():
+    parent = row(RESULT=2.31, LAB_SAMPLE_TYPE="TRG", SAMPLE_NUMBER="354-030615-08-A")
+    dup = row(RESULT=2.22, LAB_SAMPLE_TYPE="FD", SAMPLE_NUMBER="354-030615-08-D")
+    other = row(RESULT=0.5, AVERAGE_FISH_LENGTH=99.0, SAMPLE_NUMBER="354-030615-09-A")
+    samples, _ = parse_samples([parent, dup, other])
+    merged = merge_field_duplicates(samples)
+    assert [(s.value, s.duplicate) for s in merged] == [(2.265, False), (0.5, False)]
+
+
+def test_field_duplicate_nondetect_rules():
+    parent_nd = row(RESULT=None, LAB_FIELD_QUALIFIER="U", MDL=0.001, SAMPLE_NUMBER="1-A")
+    dup_det = row(RESULT=0.2, LAB_SAMPLE_TYPE="FD", SAMPLE_NUMBER="1-D")
+    [m] = merge_field_duplicates(parse_samples([parent_nd, dup_det])[0])
+    assert (m.value, m.is_nd) == (0.2, False)
+    dup_nd = row(RESULT=None, LAB_FIELD_QUALIFIER="U", MDL=0.002, LAB_SAMPLE_TYPE="FD", SAMPLE_NUMBER="1-D")
+    [m] = merge_field_duplicates(parse_samples([parent_nd, dup_nd])[0])
+    assert (m.value, m.is_nd, m.rl) == (None, True, 0.002)
+
+
+def test_unmatched_or_ambiguous_duplicate_is_kept():
+    orphan = row(RESULT=0.4, LAB_SAMPLE_TYPE="FD", SAMPLE_NUMBER="9-D")
+    assert len(merge_field_duplicates(parse_samples([orphan])[0])) == 1
+    a, b = row(RESULT=0.4, SAMPLE_NUMBER="7-A"), row(RESULT=0.6, SAMPLE_NUMBER="8-A")
+    dup = row(RESULT=0.5, LAB_SAMPLE_TYPE="FD", SAMPLE_NUMBER="5-D")
+    assert len(merge_field_duplicates(parse_samples([a, b, dup])[0])) == 3

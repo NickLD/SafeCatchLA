@@ -10,7 +10,7 @@ A mobile-first map of mercury levels in fish at Louisiana sampling sites. Tap a 
 - **DEQ site list**, used for site address text and town search.
 - **EPA 2022 National Lakes Assessment** fish-tissue mercury, as simple averages per species. This is a static file, already summarized into `web/public/data/national.json`.
 
-Averaging follows Louisiana's fish advisory protocol: arithmetic means per species, and non-detects counted as 0, or as half the reporting limit when most samples are detects. Rejected results are excluded. The reference line is EPA's 0.3 ppm methylmercury criterion. The design is in `docs/superpowers/specs/2026-10-24-mercury-map-design.md`.
+Averaging follows Louisiana's fish advisory protocol: arithmetic means per species, and non-detects counted as 0, or as half the reporting limit when most samples are detects. Rejected results are excluded, shellfish are left out, and lab field duplicates are merged into the sample they duplicate so each fish counts once. The reference line is EPA's 0.3 ppm methylmercury criterion. The design is in `docs/superpowers/specs/2026-10-24-mercury-map-design.md`.
 
 Visitors' browsers never contact DEQ. A GitHub Actions job (`.github/workflows/deploy.yml`) refreshes the data weekly, commits it only when it changed, and deploys to GitHub Pages.
 

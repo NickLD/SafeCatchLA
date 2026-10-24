@@ -2,8 +2,9 @@
 
 Averaging rules follow Louisiana's fish advisory protocol (LDH/LDEQ/LDWF 2012, Table 1).
 """
-from collections import Counter
-from dataclasses import dataclass
+import re
+from collections import Counter, defaultdict
+from dataclasses import dataclass, replace
 from datetime import date, datetime
 
 PPM_UNITS = {"ppm", "ug/g", "mg/kg"}
@@ -24,6 +25,8 @@ class Sample:
     length_cm: float | None
     n_fish: int | None
     composite: bool
+    sample_number: str | None = None
+    duplicate: bool = False  # a QC field duplicate: a second analysis of the same fish/composite
 
 
 def _positive(v):
@@ -74,8 +77,51 @@ def parse_samples(rows):
             length_cm=r.get("AVERAGE_FISH_LENGTH"),
             n_fish=int(n_fish) if n_fish is not None else None,
             composite=r.get("NUMBEROFFISH") == "Composite",
+            sample_number=r.get("SAMPLE_NUMBER"),
+            duplicate=r.get("LAB_SAMPLE_TYPE") == "FD",
         ))
     return samples, skipped
+
+
+def _base_number(sample_number):
+    return re.sub(r"-[A-Z]+$", "", sample_number or "")
+
+
+def _combine(parent, dups):
+    group = [parent, *dups]
+    detected = [s.value for s in group if not s.is_nd]
+    if detected:
+        return replace(parent, value=round(sum(detected) / len(detected), 6), is_nd=False, rl=None)
+    rls = [s.rl for s in group if s.rl]
+    return replace(parent, rl=max(rls) if rls else None)
+
+
+def merge_field_duplicates(samples):
+    """Fold each field duplicate into the sample it duplicates (same site, species, date and fish size),
+    so one fish or composite counts once. Detected results are averaged. A duplicate with no parent, or
+    an ambiguous one, is kept as its own sample."""
+    key = lambda s: (s.site, s.species, s.date, s.length_cm, s.weight_g)
+    parents = defaultdict(list)
+    for i, s in enumerate(samples):
+        if not s.duplicate:
+            parents[key(s)].append(i)
+    dups_of = defaultdict(list)
+    standalone = set()
+    for i, s in enumerate(samples):
+        if not s.duplicate:
+            continue
+        candidates = parents[key(s)]
+        if len(candidates) > 1:
+            candidates = [j for j in candidates if _base_number(samples[j].sample_number) == _base_number(s.sample_number)]
+        if len(candidates) == 1:
+            dups_of[candidates[0]].append(s)
+        else:
+            standalone.add(i)
+    return [
+        _combine(s, dups_of[i]) if dups_of[i] else s
+        for i, s in enumerate(samples)
+        if not s.duplicate or i in standalone
+    ]
 
 
 def substitute_nondetects(samples):
