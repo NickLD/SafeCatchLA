@@ -69,3 +69,25 @@ test.describe('desktop', () => {
     expect(mask).toBe('none');
   });
 });
+
+test('Chrome reports the app as installable', async ({ page, browserName }) => {
+  test.skip(browserName !== 'chromium');
+  await page.goto('/');
+  await page.evaluate(() => navigator.serviceWorker.ready);
+  const cdp = await page.context().newCDPSession(page);
+  const { installabilityErrors } = await cdp.send('Page.getInstallabilityErrors');
+  expect(installabilityErrors).toEqual([]);
+  const manifest = await (await page.request.get('/manifest.webmanifest')).json();
+  expect(manifest.icons.find((i) => i.purpose === 'maskable').src).toBe('icon-maskable-512.png');
+});
+
+test('swipe hint expands the drawer and is not shown again', async ({ page }) => {
+  await page.goto('/#site=0436');
+  const hint = page.getByRole('button', { name: /Swipe up for full history/ });
+  await expect(hint).toBeVisible();
+  await hint.click();
+  await expect(page.getByRole('button', { name: 'Collapse details' })).toBeVisible();
+  await page.reload();
+  await expect(page.getByRole('heading', { name: /Lake Henderson/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Swipe up for full history/ })).toHaveCount(0);
+});

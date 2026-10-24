@@ -147,3 +147,12 @@ test('data source footer shows last pull and last change', () => {
   expect(screen.getByText(/data last changed Oct 24, 2026/)).toBeTruthy();
   Object.assign(app, { meta: null, status: null });
 });
+
+test('peek shows a swipe hint that expands the drawer', async () => {
+  localStorage.removeItem('safecatch.expandedOnce');
+  renderSheet();
+  await fireEvent.click(screen.getByRole('button', { name: /Swipe up for full history/ }));
+  expect(screen.getByRole('button', { name: 'Collapse details' })).toBeTruthy();
+  expect(screen.queryByRole('button', { name: /Swipe up for full history/ })).toBeNull();
+  expect(localStorage.getItem('safecatch.expandedOnce')).toBe('1');
+});

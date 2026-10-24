@@ -4,6 +4,7 @@
   import { displaySpecies } from '../lib/format.js';
   import { searchSites } from '../lib/search.js';
   import { app, speciesBySampleCount, update } from '../lib/state.svelte.js';
+  import InstallButton from './InstallButton.svelte';
 
   let { onPick, onLocate } = $props();
   let query = $state('');
@@ -55,6 +56,7 @@
       {/if}
     </div>
     <button class="locate" onclick={onLocate} aria-label="Show sites near me" title="Near me">📍</button>
+    <InstallButton />
   </div>
   <div class="row pills" class:fade bind:this={pillsEl} onscroll={updateFade}>
     <select aria-label="Contaminant" disabled={CONTAMINANTS.length === 1}>
