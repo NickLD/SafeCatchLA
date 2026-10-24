@@ -3,7 +3,7 @@ import { DEFAULTS, parseHash, sanitizeState, toHash } from '../src/lib/urlState.
 
 test('parseHash valid', () => {
   expect(parseHash('#site=0436&species=LARGEMOUTH%20BASS&period=all&color=age&filter=BOWFIN'))
-    .toEqual({ site: '0436', species: 'LARGEMOUTH BASS', filter: 'BOWFIN', period: 'all', color: 'age', compare: null });
+    .toEqual({ site: '0436', species: 'LARGEMOUTH BASS', filter: 'BOWFIN', period: 'all', color: 'age', compare: null, range: null });
   expect(parseHash('#period=5').period).toBe(5);
 });
 
@@ -34,4 +34,12 @@ test('sanitizeState drops values the data does not have', () => {
   expect(sanitizeState({ ...base, filter: 'BLUE CATFISH' }, SITES)).toEqual({});
   expect(sanitizeState({ ...base, site: 'nope' }, SITES)).toEqual({ site: null, species: null, compare: null });
   expect(sanitizeState({ ...DEFAULTS, site: '0436' }, SITES)).toEqual({ species: 'LARGEMOUTH BASS' });
+});
+
+test('range round-trips and bad ranges are ignored', () => {
+  expect(parseHash('#range=0.1,0.8').range).toEqual([0.1, 0.8]);
+  expect(parseHash('#range=0.8,0.1').range).toBeNull();
+  expect(parseHash('#range=x,1').range).toBeNull();
+  const s = { ...DEFAULTS, range: [0.1, 0.8] };
+  expect(parseHash(toHash(s))).toEqual(s);
 });

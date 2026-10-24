@@ -41,7 +41,7 @@
         <option value={name}>{displaySpecies(name)}</option>
       {/each}
     </select>
-    <select aria-label="Color by" value={app.color} onchange={(e) => update({ color: e.currentTarget.value })}>
+    <select aria-label="Color by" value={app.color} onchange={(e) => update({ color: e.currentTarget.value, range: null })}>
       {#each MODES as m (m)}<option value={m}>{MODE_SHORT[m]}</option>{/each}
     </select>
     <select aria-label="Period" value={String(app.period)}

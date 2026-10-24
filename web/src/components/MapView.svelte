@@ -6,6 +6,7 @@
   import { app } from '../lib/state.svelte.js';
 
   let { onSelect, onMapTap } = $props();
+  const OUTLINE = 'rgba(0, 0, 0, 0.5)'; // dark so pale mid-scale dots still stand out on the light map
   let el;
   let map;
   let markers = new Map();
@@ -51,7 +52,7 @@
     const renderer = L.svg({ padding: 0.5 });
     for (const site of app.sites) {
       if (site.lat == null || site.lon == null) continue;
-      const m = L.circleMarker([site.lat, site.lon], { renderer, radius: radiusFor(zoom), weight: 1.5, color: '#fff', fillOpacity: 0.95, bubblingMouseEvents: false })
+      const m = L.circleMarker([site.lat, site.lon], { renderer, radius: radiusFor(zoom), weight: 1, color: OUTLINE, fillOpacity: 0.95, bubblingMouseEvents: false })
         .on('click', () => onSelect(site))
         .bindTooltip(site.name, { direction: 'top' })
         .addTo(map);
@@ -61,7 +62,7 @@
 
   // Restyle when anything that affects color or selection changes.
   $effect(() => {
-    const ctx = { mode: app.color, species: app.filter, period: app.period, latestYear: app.latestYear, today: new Date() };
+    const ctx = { mode: app.color, species: app.filter, period: app.period, latestYear: app.latestYear, today: new Date(), range: app.range };
     const selected = app.site;
     const radius = radiusFor(zoom);
     if (!ready || !app.sites.length) return;
@@ -69,7 +70,7 @@
       const m = markers.get(site.id);
       if (!m) continue;
       const isSel = site.id === selected;
-      m.setStyle({ fillColor: colorSite(site, ctx).color, color: isSel ? '#000' : '#fff', weight: isSel ? 3 : 1.5 });
+      m.setStyle({ fillColor: colorSite(site, ctx).color, color: isSel ? '#000' : OUTLINE, weight: isSel ? 3 : 1 });
       m.setRadius(isSel ? radius + 3 : radius);
       if (isSel) m.bringToFront();
     }

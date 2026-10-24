@@ -2,7 +2,7 @@
 import { ALL_SPECIES, DEFAULT_PERIOD, PERIODS } from './config.js';
 import { MODES } from './coloring.js';
 
-export const DEFAULTS = { site: null, species: null, filter: ALL_SPECIES, period: DEFAULT_PERIOD, color: 'avg', compare: null };
+export const DEFAULTS = { site: null, species: null, filter: ALL_SPECIES, period: DEFAULT_PERIOD, color: 'avg', compare: null, range: null };
 
 function parsePeriod(v) {
   const p = v === 'all' ? 'all' : Number(v);
@@ -22,6 +22,8 @@ export function parseHash(hash) {
     if (v) state[key] = v;
   }
   state.period = parsePeriod(params.get('period')) ?? DEFAULTS.period;
+  const range = (params.get('range') ?? '').split(',').map(Number);
+  if (range.length === 2 && range.every(Number.isFinite) && range[0] < range[1]) state.range = range;
   const color = params.get('color');
   if (MODES.includes(color)) state.color = color;
   return state;
@@ -47,7 +49,7 @@ export function toHash(state) {
   for (const key of Object.keys(DEFAULTS)) {
     const v = state[key];
     if (v !== null && v !== undefined && v !== DEFAULTS[key]) {
-      parts.push(`${key}=${encodeURIComponent(v)}`);
+      parts.push(`${key}=${encodeURIComponent(Array.isArray(v) ? v.join(',') : v)}`);
     }
   }
   return parts.length ? `#${parts.join('&')}` : '';

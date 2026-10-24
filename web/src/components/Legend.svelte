@@ -3,6 +3,7 @@
   import { legendFor, MODE_LABELS } from '../lib/coloring.js';
   import { displaySpecies } from '../lib/format.js';
   import { app } from '../lib/state.svelte.js';
+  import Thermometer from './Thermometer.svelte';
 
   let open = $state(false);
   let items = $derived(legendFor(app.color));
@@ -15,14 +16,24 @@
     <button onclick={() => (open = !open)} aria-expanded={open} aria-label="About these colors">ⓘ</button>
   </div>
   <div class="sub">{mixed ? 'All species (mixed)' : app.filter === ALL_SPECIES ? 'All species' : displaySpecies(app.filter)}</div>
-  <ul>
-    {#each items as item (item.key)}
-      <li><span class="dot" style:background={item.color}></span>{item.label}</li>
-    {/each}
-  </ul>
+  {#if items}
+    <ul>
+      {#each items as item (item.key)}
+        <li><span class="dot" style:background={item.color}></span>{item.label}</li>
+      {/each}
+    </ul>
+  {:else}
+    <Thermometer />
+    <div class="nodata"><span class="dot" style:background="#9e9e9e"></span>No recent data</div>
+  {/if}
   {#if open}
     <p>
-      Colors compare the average to the EPA guideline ({EPA_GUIDELINE_PPM} ppm) for the selected period.
+      {#if app.color === 'avg' || app.color === 'latest'}
+        Blue is below the EPA guideline ({EPA_GUIDELINE_PPM} ppm) and red is above it; the deeper the color, the
+        further away. Drag the handles to set where the deepest colors are reached.
+      {:else}
+        Drag the handles to set the range the colors span.
+      {/if}
       Averages are per species; "All species (mixed)" pools every species and can hide high-mercury fish.
     </p>
   {/if}
@@ -33,7 +44,7 @@
 
 <style>
   .legend {
-    position: absolute; left: 8px; bottom: 20px; z-index: 900; max-width: min(260px, calc(100vw - 80px));
+    position: absolute; left: 8px; bottom: 20px; z-index: 900; width: min(280px, calc(100vw - 80px));
     background: var(--surface); color: var(--text); border-radius: 12px; box-shadow: var(--shadow);
     padding: 6px 8px; font-size: 11px;
   }
@@ -42,7 +53,8 @@
   .sub { color: var(--muted); }
   ul { list-style: none; margin: 4px 0 0; padding: 0; }
   li { display: flex; align-items: center; gap: 6px; line-height: 1.5; }
-  .dot { width: 12px; height: 12px; border-radius: 50%; border: 1px solid rgba(0, 0, 0, 0.25); flex-shrink: 0; }
+  .dot { display: inline-block; width: 12px; min-width: 12px; height: 12px; border-radius: 50%; border: 1px solid rgba(0, 0, 0, 0.25); flex-shrink: 0; }
   p { margin: 6px 0 0; }
+  .nodata { display: flex; align-items: center; gap: 6px; margin-top: 2px; }
   .src { color: var(--muted); font-size: 11px; }
 </style>
