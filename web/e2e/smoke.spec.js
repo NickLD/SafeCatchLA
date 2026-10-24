@@ -49,3 +49,23 @@ test('tapping the map closes the sheet', async ({ page }) => {
   });
   await expect(page.getByText(/This is not health advice/)).toHaveCount(0);
 });
+
+test.describe('desktop', () => {
+  test.use({ viewport: { width: 1280, height: 800 }, isMobile: false, hasTouch: false });
+
+  test('filter pills use the space up to the drawer and only fade when they overflow', async ({ page }) => {
+    await page.goto('/#site=0436');
+    await expect(page.getByRole('heading', { name: /Lake Henderson/ })).toBeVisible();
+    const drawer = await page.getByRole('complementary', { name: 'Site details' }).boundingBox();
+    const row = page.locator('.pills');
+    const box = await row.boundingBox();
+    expect(box.x + box.width).toBeLessThanOrEqual(drawer.x);
+    expect(box.x + box.width).toBeGreaterThan(drawer.x - 40); // reaches the drawer
+    const { overflow, mask } = await row.evaluate((el) => ({
+      overflow: el.scrollWidth > el.clientWidth + 1,
+      mask: getComputedStyle(el).maskImage,
+    }));
+    expect(overflow).toBe(false);
+    expect(mask).toBe('none');
+  });
+});

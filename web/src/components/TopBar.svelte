@@ -10,13 +10,31 @@
   let results = $derived(searchSites(app.sites, query));
   let speciesOptions = $derived(speciesBySampleCount(app.sites));
 
+  // Fade the right edge only while pills are actually hidden past it.
+  let pillsEl = $state();
+  let fade = $state(false);
+  function updateFade() {
+    if (pillsEl) fade = pillsEl.scrollLeft + pillsEl.clientWidth < pillsEl.scrollWidth - 1;
+  }
+  $effect(() => {
+    if (!pillsEl) return;
+    updateFade();
+    if (typeof ResizeObserver === 'undefined') {
+      addEventListener('resize', updateFade);
+      return () => removeEventListener('resize', updateFade);
+    }
+    const ro = new ResizeObserver(updateFade);
+    ro.observe(pillsEl);
+    return () => ro.disconnect();
+  });
+
   function pick(site) {
     query = '';
     onPick(site);
   }
 </script>
 
-<div class="topbar">
+<div class="topbar" class:with-sheet={!!app.site}>
   <div class="row">
     <div class="search">
       <input type="search" bind:value={query} placeholder="Search a lake, river, or town" aria-label="Search sites" />
@@ -34,7 +52,7 @@
     </div>
     <button class="locate" onclick={onLocate} aria-label="Show sites near me" title="Near me">📍</button>
   </div>
-  <div class="row pills">
+  <div class="row pills" class:fade bind:this={pillsEl} onscroll={updateFade}>
     <select aria-label="Contaminant" disabled={CONTAMINANTS.length === 1}>
       {#each CONTAMINANTS as c (c.id)}<option value={c.id}>{c.label}</option>{/each}
     </select>
@@ -60,11 +78,15 @@
     padding: 8px 8px 0; display: flex; flex-direction: column; gap: 6px; pointer-events: none;
   }
   .row { display: flex; gap: 6px; pointer-events: auto; }
-  @media (min-width: 768px) { .topbar { right: auto; width: min(560px, calc(100vw - min(560px, 50vw) - 16px)); } }
-  .pills {
-    overflow-x: auto; scrollbar-width: none; padding-right: 24px;
-    mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent); /* hints that the row scrolls */
+  @media (min-width: 768px) {
+    /* Search stays a comfortable width; the pill row runs up to the drawer (or the window edge). */
+    .topbar.with-sheet { right: calc(min(560px, 50vw) + 8px); }
+    .row:not(.pills) { max-width: 560px; }
   }
+  .pills {
+    overflow-x: auto; scrollbar-width: none;
+  }
+  .pills.fade { mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent); /* hints that the row scrolls */ }
   .search { position: relative; flex: 1; }
   input, select, .locate {
     min-height: 44px; border-radius: 22px; border: 1px solid var(--border);
