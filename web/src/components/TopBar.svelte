@@ -57,6 +57,7 @@
     padding: 8px 8px 0; display: flex; flex-direction: column; gap: 6px; pointer-events: none;
   }
   .row { display: flex; gap: 6px; pointer-events: auto; }
+  @media (min-width: 768px) { .topbar { right: auto; width: min(560px, calc(100vw - 416px)); } }
   .pills { overflow-x: auto; scrollbar-width: none; }
   .search { position: relative; flex: 1; }
   input, select, .locate {

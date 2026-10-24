@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import Legend from './components/Legend.svelte';
   import MapView from './components/MapView.svelte';
+  import SiteSheet from './components/SiteSheet.svelte';
   import TopBar from './components/TopBar.svelte';
   import { loadMeta, loadNational, loadSites } from './lib/data.js';
   import { app, defaultSpecies, initFromHash, selectedSite, update } from './lib/state.svelte.js';
@@ -9,6 +10,7 @@
   let mapView;
   let status = $state('loading');
   let toast = $state('');
+  let current = $derived(status === 'ready' ? selectedSite() : null);
 
   function select(site) {
     const keep = app.site === site.id && app.species;
@@ -52,6 +54,11 @@
   <MapView bind:this={mapView} onSelect={select} />
   <TopBar onPick={pick} onLocate={locate} />
   <Legend />
+  {#if current}
+    {#key current.id}
+      <SiteSheet site={current} national={app.national} latestYear={app.latestYear} period={app.period} />
+    {/key}
+  {/if}
   {#if status === 'loading'}
     <div class="notice">Loading mercury data…</div>
   {:else if status === 'error'}
