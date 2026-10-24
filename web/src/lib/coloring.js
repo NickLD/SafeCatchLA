@@ -10,6 +10,7 @@ export const MODE_LABELS = {
   trend: 'Trend',
   count: 'Number of samples',
 };
+export const MODE_SHORT = { avg: 'Avg vs EPA', latest: 'Latest', age: 'Sample age', trend: 'Trend', count: 'Samples' };
 
 const NODATA = { key: 'nodata', label: 'No recent data', color: '#9e9e9e' };
 const BANDS = [

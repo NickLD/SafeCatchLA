@@ -7,3 +7,4 @@ __pycache__/
 .pytest_cache/
 web/test-results/
 web/playwright-report/
+web/.shot.mjs

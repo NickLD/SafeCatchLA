@@ -5,5 +5,5 @@ export default defineConfig({
   base: process.env.BASE_PATH ?? '/SafeCatchLA/',
   plugins: [svelte()],
   resolve: process.env.VITEST ? { conditions: ['browser'] } : undefined,
-  test: { environment: 'jsdom', include: ['tests/**/*.test.js'] },
+  test: { environment: 'jsdom', include: ['tests/**/*.test.js'], setupFiles: ['tests/setup.js'] },
 })
