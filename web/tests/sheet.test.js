@@ -81,3 +81,12 @@ test('single-sample site uses singular wording and latest shows its count', () =
   const summary = screen.getByRole('region', { name: 'Summary' });
   expect(within(summary).getByText('1 sample · 2016')).toBeTruthy();
 });
+
+test('disclaimer is one compact line until expanded', async () => {
+  renderSheet();
+  const note = screen.getByRole('note');
+  expect(note.textContent).toMatch(/This is not health advice/);
+  expect(note.textContent).not.toMatch(/may be above advisory levels/);
+  await fireEvent.click(screen.getByRole('button', { name: 'More about this warning' }));
+  expect(note.textContent).toMatch(/Mercury averages here may be above advisory levels/);
+});
