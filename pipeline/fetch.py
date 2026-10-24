@@ -7,6 +7,7 @@ import json
 import sys
 import time
 import urllib.request
+from datetime import datetime, timezone
 
 from pipeline.build import OUT, RAW
 
@@ -65,6 +66,7 @@ def main():
     RAW.mkdir(parents=True, exist_ok=True)
     (RAW / "mercury.json").write_text(json.dumps(mercury))
     (RAW / "sites.json").write_text(json.dumps(sites))
+    (RAW / "fetched_at.txt").write_text(datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"))
     print(f"fetched {len(mercury)} mercury rows, {len(sites)} sites")
 
 

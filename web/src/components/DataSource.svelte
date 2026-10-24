@@ -1,14 +1,18 @@
 <script>
   import { DEQ_MERCURY_URL, deqSiteUrl } from '../lib/config.js';
+  import { formatDate } from '../lib/format.js';
 
-  let { siteId, updated = null } = $props();
+  let { siteId, updated = null, checked = null } = $props();
 </script>
 
 <footer class="source">
   <h3>Data source</h3>
   <p>
     Sample results come from the Louisiana Department of Environmental Quality (LDEQ) Mercury Initiative database
-    (project WQ1994001){#if updated}, last changed {updated}{/if}. See
+    (project WQ1994001).
+    {#if checked}They were last pulled from LDEQ on {formatDate(checked)}{#if updated} (data last changed {formatDate(updated)}){/if}.
+    {:else if updated}The data last changed {formatDate(updated)}.{/if}
+    See
     <a href={deqSiteUrl(siteId)} target="_blank" rel="noopener">this site's records on LDEQ ↗</a> or the full
     <a href={DEQ_MERCURY_URL} target="_blank" rel="noopener">LDEQ mercury database ↗</a>.
   </p>

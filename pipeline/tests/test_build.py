@@ -91,3 +91,17 @@ def test_build_merges_field_duplicates(tmp_path):
     assert (bass["n"], bass["years"]) == (1, {"2010": [2.265, 1]})
     m = json.loads((tmp_path / "meta.json").read_text())
     assert m["mergedDuplicates"] == 1
+
+
+def test_status_records_last_pull_without_touching_meta(tmp_path):
+    from datetime import datetime, timezone
+    build(ROWS, SITE_ROWS, tmp_path, date(2026, 10, 24), checked_at=datetime(2026, 10, 24, 11, 5, tzinfo=timezone.utc))
+    meta_before = (tmp_path / "meta.json").read_bytes()
+    build(ROWS, SITE_ROWS, tmp_path, date(2026, 10, 31), checked_at=datetime(2026, 10, 31, 11, 2, tzinfo=timezone.utc))
+    assert (tmp_path / "meta.json").read_bytes() == meta_before
+    assert json.loads((tmp_path / "status.json").read_text()) == {"checkedAt": "2026-10-31T11:02:00Z"}
+
+
+def test_no_status_without_checked_at(tmp_path):
+    build(ROWS, SITE_ROWS, tmp_path, date(2026, 10, 24))
+    assert not (tmp_path / "status.json").exists()

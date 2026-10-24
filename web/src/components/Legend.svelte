@@ -1,7 +1,7 @@
 <script>
   import { ALL_SPECIES, CONTAMINANTS, DEQ_MERCURY_URL, EPA_GUIDELINE_PPM, EPA_NLA_URL } from '../lib/config.js';
   import { MODE_LABELS } from '../lib/coloring.js';
-  import { displaySpecies } from '../lib/format.js';
+  import { displaySpecies, formatDate } from '../lib/format.js';
   import { app } from '../lib/state.svelte.js';
   import Thermometer from './Thermometer.svelte';
 
@@ -36,7 +36,9 @@
   {/if}
   {#if app.meta}
     <p class="src">
-      Data: <a href={DEQ_MERCURY_URL} target="_blank" rel="noopener">Louisiana DEQ</a>, updated {app.meta.updated} ·
+      Data: <a href={DEQ_MERCURY_URL} target="_blank" rel="noopener">Louisiana DEQ</a>
+      {#if app.status}· last pulled {formatDate(app.status.checkedAt)} (data changed {formatDate(app.meta.updated)}){:else}·
+        data changed {formatDate(app.meta.updated)}{/if} ·
       National: <a href={EPA_NLA_URL} target="_blank" rel="noopener">EPA 2022</a>.
       Independent project; not affiliated with LDEQ.
     </p>

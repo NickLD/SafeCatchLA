@@ -41,10 +41,17 @@ jobs:
             exit 0
           fi
           updated=$(python3 -c "import json; print(json.load(open('web/public/data/meta.json'))['updated'])")
+          checked=$(python3 -c "import json; print(json.load(open('web/public/data/status.json'))['checkedAt'][:10])")
+          # status.json changes every run (last pull time); meta.json only when LDEQ's data changed.
+          if git diff --quiet -- web/public/data/meta.json; then
+            msg="data: checked LDEQ ${checked}, no data changes"
+          else
+            msg="data: refresh from LDEQ (${updated})"
+          fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add web/public/data
-          git commit -m "data: refresh from LDEQ (${updated})"
+          git commit -m "$msg"
           git push
           echo "changed=true" >> "$GITHUB_OUTPUT"
 

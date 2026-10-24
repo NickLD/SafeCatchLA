@@ -2,7 +2,7 @@
 import { periodMean } from './stats.js';
 import { DEFAULTS, parseHash, toHash } from './urlState.js';
 
-export const app = $state({ ...DEFAULTS, sites: [], latestYear: null, sizeClasses: {}, meta: null, national: null });
+export const app = $state({ ...DEFAULTS, sites: [], latestYear: null, sizeClasses: {}, meta: null, status: null, national: null });
 
 export function initFromHash() {
   Object.assign(app, parseHash(location.hash));

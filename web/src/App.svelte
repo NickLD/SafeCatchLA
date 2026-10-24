@@ -4,7 +4,7 @@
   import MapView from './components/MapView.svelte';
   import SiteSheet from './components/SiteSheet.svelte';
   import TopBar from './components/TopBar.svelte';
-  import { loadMeta, loadNational, loadSites } from './lib/data.js';
+  import { loadMeta, loadNational, loadSites, loadStatus } from './lib/data.js';
   import { sanitizeState } from './lib/urlState.js';
   import { app, defaultSpecies, initFromHash, selectedSite, update } from './lib/state.svelte.js';
 
@@ -39,8 +39,8 @@
   onMount(async () => {
     initFromHash();
     try {
-      const [sites, meta, national] = await Promise.all([loadSites(), loadMeta(), loadNational()]);
-      Object.assign(app, { sites: sites.sites, latestYear: sites.latestYear, sizeClasses: sites.sizeClasses ?? {}, meta, national });
+      const [sites, meta, national, pullStatus] = await Promise.all([loadSites(), loadMeta(), loadNational(), loadStatus()]);
+      Object.assign(app, { sites: sites.sites, latestYear: sites.latestYear, sizeClasses: sites.sizeClasses ?? {}, meta, status: pullStatus, national });
       status = 'ready';
       const fixes = sanitizeState(app, app.sites);
       if (Object.keys(fixes).length) update(fixes);

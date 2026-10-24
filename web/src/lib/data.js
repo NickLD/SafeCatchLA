@@ -10,6 +10,8 @@ async function getJson(path) {
 export const loadSites = () => getJson('sites.json');
 export const loadMeta = () => getJson('meta.json');
 export const loadNational = () => getJson('national.json');
+// Last successful pull from LDEQ; absent until the first CI refresh writes it.
+export const loadStatus = () => getJson('status.json').catch(() => null);
 
 export function loadSiteDetail(id) {
   if (!details.has(id)) {

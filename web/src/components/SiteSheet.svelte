@@ -104,7 +104,7 @@
 
     <CompareBars {site} {national} {period} {latestYear} options={shown} selected={species} />
     <AllSpeciesList {site} {period} {latestYear} />
-    <DataSource siteId={site.id} updated={app.meta?.updated} />
+    <DataSource siteId={site.id} updated={app.meta?.updated} checked={app.status?.checkedAt} />
   </div>
 </aside>
 

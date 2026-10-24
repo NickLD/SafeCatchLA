@@ -36,3 +36,13 @@ def test_validate_sites():
     with pytest.raises(FetchError):
         validate_sites([])
     validate_sites([{"id": "0001", "address": "a"}])
+
+
+def test_main_records_fetch_time(tmp_path, monkeypatch):
+    import pipeline.fetch as f
+    monkeypatch.setattr(f, "RAW", tmp_path / "raw")
+    monkeypatch.setattr(f, "OUT", tmp_path / "out")
+    monkeypatch.setattr(f, "fetch_json", lambda url: [tissue_row()] if url == f.MERCURY_URL else [{"id": "1", "address": ""}])
+    f.main()
+    stamp = (tmp_path / "raw" / "fetched_at.txt").read_text().strip()
+    assert stamp.endswith("Z") and len(stamp) == 20

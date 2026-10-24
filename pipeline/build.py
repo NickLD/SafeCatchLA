@@ -8,7 +8,7 @@ import json
 import shutil
 import tempfile
 from collections import defaultdict
-from datetime import date
+from datetime import date, datetime
 from pathlib import Path
 
 from pipeline.rules import basin_code, merge_field_duplicates, parse_samples, substitute_nondetects
@@ -58,7 +58,7 @@ def size_class_cutoffs(samples):
     return cutoffs
 
 
-def build(mercury_rows, site_rows, out_dir, today):
+def build(mercury_rows, site_rows, out_dir, today, checked_at=None):
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     parsed, skipped = parse_samples(mercury_rows)
@@ -145,13 +145,18 @@ def build(mercury_rows, site_rows, out_dir, today):
         staging.rename(target)
     _write(out_dir / "sites.json", sites_text)
     _write(meta_path, _dump(meta))
+    # When we last pulled from LDEQ, kept apart from meta.json so a pull with no data changes doesn't change meta.
+    if checked_at is not None:
+        _write(out_dir / "status.json", _dump({"checkedAt": checked_at.strftime("%Y-%m-%dT%H:%M:%SZ")}))
     return meta
 
 
 def main():
     mercury = json.loads((RAW / "mercury.json").read_text())
     site_rows = json.loads((RAW / "sites.json").read_text())
-    meta = build(mercury, site_rows, OUT, date.today())
+    stamp = RAW / "fetched_at.txt"
+    checked_at = datetime.strptime(stamp.read_text().strip(), "%Y-%m-%dT%H:%M:%SZ") if stamp.exists() else None
+    meta = build(mercury, site_rows, OUT, date.today(), checked_at)
     print(json.dumps(meta, indent=1))
 
 
