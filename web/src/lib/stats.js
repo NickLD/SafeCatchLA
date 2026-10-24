@@ -1,0 +1,96 @@
+// Pure statistics over per-year [sum, count] pairs from sites.json.
+import { ALL_SPECIES } from './config.js';
+
+const TREND_THRESHOLD = 0.1; // fractional change per decade
+const TREND_MIN_YEARS = 3;
+const TREND_MIN_SPAN = 5;
+
+export function periodStartYear(period, latestYear) {
+  return period === 'all' ? -Infinity : latestYear - period + 1;
+}
+
+export function periodMean(years, period, latestYear) {
+  if (!years) return null;
+  const start = periodStartYear(period, latestYear);
+  let sum = 0;
+  let n = 0;
+  for (const [y, [s, c]] of Object.entries(years)) {
+    if (Number(y) >= start) {
+      sum += s;
+      n += c;
+    }
+  }
+  return n ? { mean: sum / n, n } : null;
+}
+
+export function yearlyMeans(years) {
+  return Object.entries(years ?? {})
+    .map(([y, [s, c]]) => ({ year: Number(y), mean: s / c, n: c }))
+    .sort((a, b) => a.year - b.year);
+}
+
+export function trendClass(years) {
+  const pts = yearlyMeans(years);
+  if (pts.length < TREND_MIN_YEARS || pts.at(-1).year - pts[0].year < TREND_MIN_SPAN) return 'insufficient';
+  const xm = pts.reduce((a, p) => a + p.year, 0) / pts.length;
+  const ym = pts.reduce((a, p) => a + p.mean, 0) / pts.length;
+  if (ym === 0) return 'flat';
+  let num = 0;
+  let den = 0;
+  for (const p of pts) {
+    num += (p.year - xm) * (p.mean - ym);
+    den += (p.year - xm) ** 2;
+  }
+  const perDecade = ((num / den) * 10) / ym;
+  if (perDecade < -TREND_THRESHOLD) return 'improving';
+  if (perDecade > TREND_THRESHOLD) return 'worsening';
+  return 'flat';
+}
+
+function pooledMean(pts) {
+  const n = pts.reduce((a, p) => a + p.n, 0);
+  return pts.reduce((a, p) => a + p.mean * p.n, 0) / n;
+}
+
+export function changeSinceEarliest(years) {
+  const pts = yearlyMeans(years);
+  if (pts.length < 4) return null;
+  const k = Math.min(3, Math.floor(pts.length / 2));
+  const earlyPts = pts.slice(0, k);
+  const latePts = pts.slice(-k);
+  const early = pooledMean(earlyPts);
+  if (early === 0) return null;
+  const late = pooledMean(latePts);
+  return {
+    pct: Math.round(((late - early) / early) * 100),
+    early: [earlyPts[0].year, earlyPts.at(-1).year],
+    late: [latePts[0].year, latePts.at(-1).year],
+  };
+}
+
+export function mixedYears(site) {
+  const out = {};
+  for (const sp of Object.values(site.species)) {
+    for (const [y, [s, c]] of Object.entries(sp.years)) {
+      const t = (out[y] ??= [0, 0]);
+      t[0] += s;
+      t[1] += c;
+    }
+  }
+  return out;
+}
+
+export function speciesYears(site, species) {
+  if (species === ALL_SPECIES) return mixedYears(site);
+  return site.species[species]?.years ?? null;
+}
+
+export function groupMean(sites, species, period, latestYear, predicate = () => true) {
+  const means = [];
+  for (const site of sites) {
+    if (!predicate(site)) continue;
+    const m = periodMean(speciesYears(site, species), period, latestYear);
+    if (m) means.push(m.mean);
+  }
+  return means.length ? { mean: means.reduce((a, b) => a + b, 0) / means.length, nSites: means.length } : null;
+}
