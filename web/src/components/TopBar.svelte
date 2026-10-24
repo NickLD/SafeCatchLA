@@ -66,6 +66,7 @@
   }
   input { width: 100%; padding: 0 16px; }
   select { padding: 0 8px; flex: 1 1 0; min-width: 0; font-size: 14px; }
+  select[aria-label='Color by'] { flex-grow: 1.6; }
   .locate { width: 44px; flex-shrink: 0; cursor: pointer; }
   ul {
     position: absolute; top: 48px; left: 0; right: 0; margin: 0; padding: 4px 0; list-style: none;

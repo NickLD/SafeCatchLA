@@ -4,12 +4,14 @@ import { periodMean, periodStartYear, speciesYears, trendPercent } from './stats
 
 export const MODES = ['avg', 'latest', 'age', 'trend'];
 export const MODE_LABELS = {
-  avg: 'Average mercury concentration (ppm)',
-  latest: 'Latest mercury result (ppm)',
-  age: 'Years since last mercury sample',
-  trend: 'Mercury trend (% change per decade)',
+  avg: 'Average Mercury Over Time (ppm)',
+  latest: 'Most Recent Sampling Concentration (ppm)',
+  age: 'Years Since Last Mercury Sample',
+  trend: 'Mercury Trend (% Change per Decade)',
 };
-export const MODE_SHORT = { avg: 'Avg mercury', latest: 'Latest mercury', age: 'Sample age', trend: 'Trend' };
+export const MODE_SHORT = {
+  avg: 'Avg Mercury Over Time', latest: 'Most Recent Sampling Concentration', age: 'Sample Age', trend: 'Trend',
+};
 
 const NODATA_COLOR = '#9e9e9e';
 // ColorBrewer RdYlBu, split at the EPA guideline: blue side below it, red side above it.

@@ -33,10 +33,15 @@ test('age scale: recent is dark, old is light', () => {
 
 test('color modes and their names', () => {
   expect(MODES).toEqual(['avg', 'latest', 'age', 'trend']);
-  expect(MODE_SHORT.avg).toBe('Avg mercury');
-  expect(MODE_SHORT.trend).toBe('Trend'); // fits the phone dropdown; legend title says mercury
-  expect(Object.values(MODE_LABELS).every((l) => /mercury/i.test(l))).toBe(true);
-  expect(MODE_LABELS.trend).toBe('Mercury trend (% change per decade)');
+  expect(MODE_SHORT).toEqual({
+    avg: 'Avg Mercury Over Time', latest: 'Most Recent Sampling Concentration', age: 'Sample Age', trend: 'Trend',
+  });
+  expect(MODE_LABELS).toEqual({
+    avg: 'Average Mercury Over Time (ppm)',
+    latest: 'Most Recent Sampling Concentration (ppm)',
+    age: 'Years Since Last Mercury Sample',
+    trend: 'Mercury Trend (% Change per Decade)',
+  });
 });
 
 test('colorSite uses the smooth scales with the default range', () => {
