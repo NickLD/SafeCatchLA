@@ -8,7 +8,11 @@
   let { onPick, onLocate } = $props();
   let query = $state('');
   let results = $derived(searchSites(app.sites, query));
-  let speciesOptions = $derived(speciesBySampleCount(app.sites));
+  let speciesOptions = $derived.by(() => {
+    const names = speciesBySampleCount(app.sites, app.period, app.latestYear);
+    // Keep a chosen species listed even if the period has none, so the select doesn't go blank.
+    return app.filter !== ALL_SPECIES && !names.includes(app.filter) ? [app.filter, ...names] : names;
+  });
 
   // Fade the right edge only while pills are actually hidden past it.
   let pillsEl = $state();

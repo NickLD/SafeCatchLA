@@ -1,8 +1,7 @@
 <script>
   import { displaySpecies } from '../lib/format.js';
 
-  let { site, selected, onSelect } = $props();
-  let names = $derived(Object.entries(site.species).sort((a, b) => b[1].n - a[1].n).map(([name]) => name));
+  let { names, selected, onSelect } = $props();
 </script>
 
 <div class="chips" role="radiogroup" aria-label="Species">

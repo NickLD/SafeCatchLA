@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import {
-  changeOver, groupMean, mixedYears, periodMean, speciesYears, trendPercent, yearlyMeans,
+  changeOver, groupMean, mixedYears, periodMean, speciesWithData, speciesYears, trendPercent, yearlyMeans,
 } from '../src/lib/stats.js';
 
 const Y = { '1994': [1.4, 2], '2000': [0.6, 2], '2016': [0.3, 1] };
@@ -75,4 +75,15 @@ test('changeOver previous compares the last two sampled years, ignoring the peri
   expect(changeOver(H, 5, 2026, 'previous')).toEqual({ pct: -33, early: [2016, 2016], late: [2018, 2018] });
   expect(changeOver({ '2018': [0.2, 1] }, 'all', 2026, 'previous')).toBeNull();
   expect(changeOver({ '2016': [0, 1], '2018': [0.2, 1] }, 'all', 2026, 'previous')).toBeNull();
+});
+
+test('speciesWithData lists species that have samples in the period, most-sampled first', () => {
+  const site = { species: {
+    BOWFIN: { n: 9, years: { '1994': [1, 9] } },
+    BASS: { n: 3, years: { '2016': [0.9, 3] } },
+    DRUM: { n: 5, years: { '2010': [1, 2], '2018': [0.6, 3] } },
+  } };
+  expect(speciesWithData(site, 20, 2026)).toEqual(['DRUM', 'BASS']);
+  expect(speciesWithData(site, 'all', 2026)).toEqual(['BOWFIN', 'DRUM', 'BASS']);
+  expect(speciesWithData(site, 5, 2026)).toEqual([]);
 });

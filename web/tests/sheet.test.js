@@ -103,3 +103,30 @@ test('change tile follows the period and can switch to previous sample', async (
   expect(within(summary).getByText('↓33%')).toBeTruthy();
   expect(within(summary).getByText('2018 vs 2016')).toBeTruthy();
 });
+
+const MIXED_SITE = {
+  ...SITE,
+  species: {
+    'LARGEMOUTH BASS': { n: 3, latest: ['2016-05-01', 0.31, 1], years: { '2016': [0.93, 3] } },
+    BOWFIN: { n: 9, latest: ['1994-05-01', 0.5, 9], years: { '1994': [4.5, 9] } },
+  },
+};
+
+test('species with no samples in the period are left out', () => {
+  Object.assign(app, { sites: [MIXED_SITE], latestYear: 2026, period: 20, site: '0001', species: 'BOWFIN', compare: null });
+  render(SiteSheet, { site: MIXED_SITE, national: NATIONAL, latestYear: 2026, period: 20 });
+  const chips = screen.getByRole('radiogroup', { name: 'Species' });
+  expect(within(chips).getAllByRole('radio').map((r) => r.textContent.trim())).toEqual(['Largemouth Bass']);
+  expect(screen.queryByText(/no samples in period/)).toBeNull();
+  const items = within(screen.getByRole('list', { name: 'All species here' })).getAllByRole('listitem');
+  expect(items).toHaveLength(1);
+  const compareOpts = [...screen.getByLabelText('Compare species').querySelectorAll('option')].map((o) => o.textContent);
+  expect(compareOpts).toEqual(['Largemouth Bass', 'All species (mixed)']);
+});
+
+test('a site with nothing in the period still offers all its species', () => {
+  Object.assign(app, { sites: [MIXED_SITE], latestYear: 2026, period: 5, site: '0001', species: null, compare: null });
+  render(SiteSheet, { site: MIXED_SITE, national: NATIONAL, latestYear: 2026, period: 5 });
+  const chips = screen.getByRole('radiogroup', { name: 'Species' });
+  expect(within(chips).getAllByRole('radio')).toHaveLength(2);
+});

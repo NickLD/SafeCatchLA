@@ -1,4 +1,5 @@
 // App-wide state, mirrored into location.hash so any view can be shared as a link.
+import { periodMean } from './stats.js';
 import { DEFAULTS, parseHash, toHash } from './urlState.js';
 
 export const app = $state({ ...DEFAULTS, sites: [], latestYear: null, sizeClasses: {}, meta: null, national: null });
@@ -23,11 +24,14 @@ export function defaultSpecies(site) {
   return Object.entries(site.species).sort((a, b) => b[1].n - a[1].n)[0]?.[0] ?? null;
 }
 
-// Every species in the dataset, most-sampled first.
-export function speciesBySampleCount(sites) {
+// Species in the dataset with samples in the period (all species by default), most-sampled first.
+export function speciesBySampleCount(sites, period = 'all', latestYear = null) {
   const totals = new Map();
   for (const s of sites) {
-    for (const [name, sp] of Object.entries(s.species)) totals.set(name, (totals.get(name) ?? 0) + sp.n);
+    for (const [name, sp] of Object.entries(s.species)) {
+      if (period !== 'all' && !periodMean(sp.years, period, latestYear)) continue;
+      totals.set(name, (totals.get(name) ?? 0) + sp.n);
+    }
   }
   return [...totals.entries()].sort((a, b) => b[1] - a[1]).map(([name]) => name);
 }

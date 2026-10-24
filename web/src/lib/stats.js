@@ -74,6 +74,14 @@ export function changeOver(years, period, latestYear, basis) {
   };
 }
 
+// Species with at least one sample in the period, most-sampled (overall) first.
+export function speciesWithData(site, period, latestYear) {
+  return Object.entries(site.species)
+    .filter(([, sp]) => periodMean(sp.years, period, latestYear))
+    .sort((a, b) => b[1].n - a[1].n)
+    .map(([name]) => name);
+}
+
 export function mixedYears(site) {
   const out = {};
   for (const sp of Object.values(site.species)) {

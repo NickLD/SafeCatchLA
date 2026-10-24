@@ -43,3 +43,14 @@ test('contaminant pill lists mercury', () => {
   const opts = [...screen.getByLabelText('Contaminant').querySelectorAll('option')].map((o) => o.textContent);
   expect(opts).toEqual(['Mercury']);
 });
+
+test('species filter only offers species with samples in the period', () => {
+  app.sites = [
+    { id: '1', name: 'A', address: '', n: 5, species: { BOWFIN: { n: 5, latest: ['2001-01-01', 0.4], years: { '2001': [2, 5] } } } },
+    { id: '2', name: 'B', address: '', n: 2, species: { 'LARGEMOUTH BASS': { n: 2, latest: ['2024-01-01', 0.4], years: { '2024': [1, 2] } } } },
+  ];
+  Object.assign(app, { period: 5, latestYear: 2026, filter: 'ALL' });
+  render(TopBar, { onPick: () => {}, onLocate: () => {} });
+  const opts = [...screen.getByLabelText('Species').querySelectorAll('option')].map((o) => o.textContent);
+  expect(opts).toEqual(['All species', 'Largemouth Bass']);
+});

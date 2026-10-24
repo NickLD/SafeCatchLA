@@ -4,10 +4,9 @@
   import { app, update } from '../lib/state.svelte.js';
   import { groupMean, periodMean, speciesYears } from '../lib/stats.js';
 
-  let { site, national, period, latestYear } = $props();
+  let { site, national, period, latestYear, options, selected } = $props();
 
-  let species = $derived(app.compare && (app.compare === ALL_SPECIES || site.species[app.compare]) ? app.compare : app.species);
-  let options = $derived(Object.entries(site.species).sort((a, b) => b[1].n - a[1].n).map(([n]) => n));
+  let species = $derived(app.compare && (app.compare === ALL_SPECIES || options.includes(app.compare)) ? app.compare : selected);
 
   let rows = $derived.by(() => {
     const own = periodMean(speciesYears(site, species), period, latestYear);

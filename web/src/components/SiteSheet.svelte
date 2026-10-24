@@ -3,7 +3,7 @@
   import { loadSiteDetail } from '../lib/data.js';
   import { displaySpecies } from '../lib/format.js';
   import { app, defaultSpecies, update } from '../lib/state.svelte.js';
-  import { groupMean } from '../lib/stats.js';
+  import { groupMean, speciesWithData } from '../lib/stats.js';
   import AllSpeciesList from './AllSpeciesList.svelte';
   import CompareBars from './CompareBars.svelte';
   import Disclaimer from './Disclaimer.svelte';
@@ -18,7 +18,12 @@
   let toast = $state('');
   let dragStart = null;
 
-  let species = $derived(site.species[app.species] ? app.species : defaultSpecies(site));
+  // Species with samples in the period; if none, all of them so the history can still be explored.
+  let shown = $derived.by(() => {
+    const names = speciesWithData(site, period, latestYear);
+    return names.length ? names : speciesWithData(site, 'all', latestYear);
+  });
+  let species = $derived(shown.includes(app.species) ? app.species : (shown[0] ?? defaultSpecies(site)));
   let entry = $derived(site.species[species]);
   let stateAvg = $derived(groupMean(app.sites, species, period, latestYear)?.mean ?? null);
   let samples = $derived((detail?.id === site.id && detail.species[species]) || []);
@@ -89,14 +94,14 @@
     </header>
     {#if toast}<p class="toast">{toast}</p>{/if}
 
-    <SpeciesChips {site} selected={species} onSelect={(name) => update({ species: name })} />
+    <SpeciesChips names={shown} selected={species} onSelect={(name) => update({ species: name })} />
     <HeadlineStats {entry} {period} {latestYear} />
     <Disclaimer />
 
     <h3>{displaySpecies(species)} over time</h3>
     <TrendChart years={entry.years} {samples} {stateAvg} cuts={app.sizeClasses[species]} {period} {latestYear} />
 
-    <CompareBars {site} {national} {period} {latestYear} />
+    <CompareBars {site} {national} {period} {latestYear} options={shown} selected={species} />
     <AllSpeciesList {site} {period} {latestYear} />
   </div>
 </aside>
