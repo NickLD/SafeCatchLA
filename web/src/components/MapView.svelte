@@ -5,7 +5,7 @@
   import { colorSite } from '../lib/coloring.js';
   import { app } from '../lib/state.svelte.js';
 
-  let { onSelect } = $props();
+  let { onSelect, onMapTap } = $props();
   let el;
   let map;
   let markers = new Map();
@@ -40,6 +40,7 @@
       attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     }).addTo(map);
     map.on('zoomend', () => (zoom = map.getZoom()));
+    map.on('click', () => onMapTap()); // markers set bubblingMouseEvents: false so their taps don't land here
     ready = true;
     return () => map.remove();
   });
@@ -50,7 +51,7 @@
     const renderer = L.svg({ padding: 0.5 });
     for (const site of app.sites) {
       if (site.lat == null || site.lon == null) continue;
-      const m = L.circleMarker([site.lat, site.lon], { renderer, radius: radiusFor(zoom), weight: 1.5, color: '#fff', fillOpacity: 0.95 })
+      const m = L.circleMarker([site.lat, site.lon], { renderer, radius: radiusFor(zoom), weight: 1.5, color: '#fff', fillOpacity: 0.95, bubblingMouseEvents: false })
         .on('click', () => onSelect(site))
         .bindTooltip(site.name, { direction: 'top' })
         .addTo(map);

@@ -30,7 +30,7 @@ def test_sites_json(tmp_path):
     assert (s1["name"], s1["lat"], s1["lon"]) == ("Vermilion River North of Perry", 29.95, -92.15)
     bass = s1["species"]["LARGEMOUTH BASS"]
     assert bass["years"] == {"2010": [1.0, 2], "2016": [0.001, 1]}  # 2 of 3 detects -> half RL
-    assert bass["latest"] == ["2016-05-01", 0.001]
+    assert bass["latest"] == ["2016-05-01", 0.001, 1]
     assert bass["n"] == 3
     assert d["sites"][1]["address"] == ""
     assert d["sites"][1]["basin"] is None

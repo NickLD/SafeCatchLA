@@ -5,6 +5,7 @@
   import SiteSheet from './components/SiteSheet.svelte';
   import TopBar from './components/TopBar.svelte';
   import { loadMeta, loadNational, loadSites } from './lib/data.js';
+  import { sanitizeState } from './lib/urlState.js';
   import { app, defaultSpecies, initFromHash, selectedSite, update } from './lib/state.svelte.js';
 
   let mapView;
@@ -22,6 +23,10 @@
     mapView.focusSite(site);
   }
 
+  function closeSheet() {
+    if (app.site) update({ site: null, species: null, compare: null });
+  }
+
   async function locate() {
     try {
       await mapView.locate();
@@ -37,13 +42,10 @@
       const [sites, meta, national] = await Promise.all([loadSites(), loadMeta(), loadNational()]);
       Object.assign(app, { sites: sites.sites, latestYear: sites.latestYear, meta, national });
       status = 'ready';
+      const fixes = sanitizeState(app, app.sites);
+      if (Object.keys(fixes).length) update(fixes);
       const site = selectedSite();
-      if (site) {
-        if (!app.species) update({ species: defaultSpecies(site) });
-        mapView.focusSite(site, 10);
-      } else if (app.site) {
-        update({ site: null, species: null, compare: null }); // unknown site in a shared link
-      }
+      if (site) mapView.focusSite(site, 10);
     } catch {
       status = 'error';
     }
@@ -51,7 +53,7 @@
 </script>
 
 <main>
-  <MapView bind:this={mapView} onSelect={select} />
+  <MapView bind:this={mapView} onSelect={select} onMapTap={closeSheet} />
   <TopBar onPick={pick} onLocate={locate} />
   <Legend />
   {#if current}

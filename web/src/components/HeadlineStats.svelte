@@ -23,7 +23,7 @@
   <div class="tile">
     <b>{formatPpm(entry.latest[1])}</b>
     <span>latest ppm</span>
-    <small>{entry.latest[0].slice(0, 4)}</small>
+    <small>{entry.latest[2] ?? 1} {(entry.latest[2] ?? 1) === 1 ? 'sample' : 'samples'} · {entry.latest[0].slice(0, 4)}</small>
   </div>
   <div class="tile">
     {#if change}

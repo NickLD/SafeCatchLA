@@ -27,6 +27,21 @@ export function parseHash(hash) {
   return state;
 }
 
+// Shared links can outlive the data (or be hand-edited): drop values the loaded sites don't have.
+export function sanitizeState(state, sites) {
+  const patch = {};
+  const site = state.site ? sites.find((s) => s.id === state.site) : null;
+  if (state.site && !site) Object.assign(patch, { site: null, species: null, compare: null });
+  if (site) {
+    if (!site.species[state.species]) {
+      patch.species = Object.entries(site.species).sort((a, b) => b[1].n - a[1].n)[0]?.[0] ?? null;
+    }
+    if (state.compare && state.compare !== ALL_SPECIES && !site.species[state.compare]) patch.compare = null;
+  }
+  if (state.filter !== ALL_SPECIES && !sites.some((s) => s.species[state.filter])) patch.filter = ALL_SPECIES;
+  return patch;
+}
+
 export function toHash(state) {
   const parts = [];
   for (const key of Object.keys(DEFAULTS)) {

@@ -79,7 +79,7 @@ def build(mercury_rows, site_rows, out_dir, today):
         site["last"] = max(site["last"], last_date.isoformat())
         site["species"][species] = {
             "n": len(group),
-            "latest": [last_date.isoformat(), _r(sum(latest) / len(latest))],
+            "latest": [last_date.isoformat(), _r(sum(latest) / len(latest)), len(latest)],
             "years": {y: [_r(t), c] for y, (t, c) in years.items()},
         }
         details.setdefault(site_id, {"id": site_id, "species": {}})["species"][species] = [

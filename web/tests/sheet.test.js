@@ -71,3 +71,13 @@ test('close clears the selected site', async () => {
   await fireEvent.click(screen.getByRole('button', { name: 'Close' }));
   expect(app.site).toBeNull();
 });
+
+test('single-sample site uses singular wording and latest shows its count', () => {
+  const one = { ...SITE, n: 1, species: { BOWFIN: { n: 1, latest: ['2016-05-01', 0.2, 1], years: { '2016': [0.2, 1] } } } };
+  Object.assign(app, { sites: [one], latestYear: 2026, period: 'all', site: '0001', species: 'BOWFIN', compare: null });
+  render(SiteSheet, { site: one, national: NATIONAL, latestYear: 2026, period: 'all' });
+  expect(screen.getByText(/1 sample · last 2016/)).toBeTruthy();
+  expect(screen.queryByText(/1 samples/)).toBeNull();
+  const summary = screen.getByRole('region', { name: 'Summary' });
+  expect(within(summary).getByText('1 sample · 2016')).toBeTruthy();
+});

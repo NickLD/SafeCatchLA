@@ -79,7 +79,7 @@
         <h2>{site.name}</h2>
         <p class="meta">
           {#if site.address}{site.address}<br />{/if}
-          {[site.basin && `${BASINS[site.basin]} basin`, `${site.n} samples`, `last ${site.last.slice(0, 4)}`].filter(Boolean).join(' · ')}
+          {[site.basin && `${BASINS[site.basin]} basin`, `${site.n} ${site.n === 1 ? 'sample' : 'samples'}`, `last ${site.last.slice(0, 4)}`].filter(Boolean).join(' · ')}
         </p>
       </div>
       <div class="actions">
