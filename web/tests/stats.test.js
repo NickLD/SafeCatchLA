@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import {
-  changeSinceEarliest, groupMean, mixedYears, periodMean, speciesYears, trendClass, yearlyMeans,
+  changeOver, groupMean, mixedYears, periodMean, speciesYears, trendClass, yearlyMeans,
 } from '../src/lib/stats.js';
 
 const Y = { '1994': [1.4, 2], '2000': [0.6, 2], '2016': [0.3, 1] };
@@ -37,13 +37,6 @@ test('trendClass', () => {
   expect(trendClass({ '2000': [0, 1], '2010': [0, 1], '2020': [0, 1] })).toBe('flat');
 });
 
-test('changeSinceEarliest', () => {
-  expect(changeSinceEarliest({ '1994': [0.8, 1], '1995': [0.6, 1], '2015': [0.3, 1], '2016': [0.2, 1] }))
-    .toEqual({ pct: -64, early: [1994, 1995], late: [2015, 2016] });
-  expect(changeSinceEarliest(Y)).toBeNull();
-  expect(changeSinceEarliest({ '1994': [0, 1], '1995': [0, 1], '2015': [0.3, 1], '2016': [0.2, 1] })).toBeNull();
-});
-
 test('groupMean skips sites without period data', () => {
   const sites = [
     { basin: '05', species: { B: { years: { '2020': [0.4, 2] } } } },
@@ -67,4 +60,19 @@ test('speciesYears', () => {
   expect(speciesYears(site, 'A')).toEqual({ '2020': [1, 2] });
   expect(speciesYears(site, 'ALL')).toEqual({ '2020': [1, 2] });
   expect(speciesYears(site, 'Z')).toBeNull();
+});
+
+const H = { '1994': [0.8, 1], '1995': [0.6, 1], '2008': [0.5, 2], '2016': [0.3, 1], '2018': [0.2, 1] };
+
+test('changeOver period compares early vs late years inside the period', () => {
+  expect(changeOver(H, 'all', 2026, 'period')).toEqual({ pct: -64, early: [1994, 1995], late: [2016, 2018] });
+  expect(changeOver(H, 20, 2026, 'period')).toEqual({ pct: -20, early: [2008, 2008], late: [2018, 2018] });
+  expect(changeOver(H, 10, 2026, 'period')).toBeNull(); // 2017+ has only 2018
+  expect(changeOver(H, 5, 2026, 'period')).toBeNull(); // only one sampled year
+});
+
+test('changeOver previous compares the last two sampled years, ignoring the period', () => {
+  expect(changeOver(H, 5, 2026, 'previous')).toEqual({ pct: -33, early: [2016, 2016], late: [2018, 2018] });
+  expect(changeOver({ '2018': [0.2, 1] }, 'all', 2026, 'previous')).toBeNull();
+  expect(changeOver({ '2016': [0, 1], '2018': [0.2, 1] }, 'all', 2026, 'previous')).toBeNull();
 });

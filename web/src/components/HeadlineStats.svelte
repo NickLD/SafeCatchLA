@@ -1,10 +1,13 @@
 <script>
   import { formatPpm } from '../lib/format.js';
-  import { changeSinceEarliest, periodMean } from '../lib/stats.js';
+  import { changeOver, periodMean } from '../lib/stats.js';
 
   let { entry, period, latestYear } = $props();
   let avg = $derived(periodMean(entry.years, period, latestYear));
-  let change = $derived(changeSinceEarliest(entry.years));
+  let basis = $state('period');
+  let change = $derived(changeOver(entry.years, period, latestYear, basis));
+  const span = ([a, b]) => (a === b ? String(a) : `${a}–${String(b % 100).padStart(2, '0')}`);
+  let changeText = $derived(change && (basis === 'previous' ? `${change.late[0]} vs ${change.early[0]}` : `since ${span(change.early)}`));
   let periodText = $derived(period === 'all' ? 'all years' : `last ${period} yrs`);
 </script>
 
@@ -28,13 +31,15 @@
   <div class="tile">
     {#if change}
       <b class:down={change.pct < 0} class:up={change.pct > 0}>{change.pct < 0 ? '↓' : change.pct > 0 ? '↑' : ''}{Math.abs(change.pct)}%</b>
-      <span>change</span>
-      <small>since {change.early[0]}–{String(change.early[1] % 100).padStart(2, '0')}</small>
+      <small>{changeText}</small>
     {:else}
       <b>—</b>
-      <span>change</span>
-      <small>Not enough years</small>
+      <small>{basis === 'previous' ? 'Only one sampled year' : 'Not enough years in period'}</small>
     {/if}
+    <select aria-label="Compare change" bind:value={basis}>
+      <option value="period">change over period</option>
+      <option value="previous">vs previous sample</option>
+    </select>
   </div>
 </section>
 
@@ -47,6 +52,10 @@
   b { font-size: 20px; }
   span { font-size: 12px; }
   small { font-size: 11px; color: var(--muted); }
+  select {
+    margin-top: 2px; max-width: 100%; font-size: 11px; border: 0; background: none; color: var(--accent);
+    text-decoration: underline; text-align: center; cursor: pointer;
+  }
   .down { color: #2c7bb6; }
   .up { color: #d7191c; }
 </style>

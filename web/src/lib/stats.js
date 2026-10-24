@@ -52,17 +52,25 @@ function pooledMean(pts) {
   return pts.reduce((a, p) => a + p.mean * p.n, 0) / n;
 }
 
-export function changeSinceEarliest(years) {
-  const pts = yearlyMeans(years);
-  if (pts.length < 4) return null;
-  const k = Math.min(3, Math.floor(pts.length / 2));
+// Percent change in mercury. 'period': earliest vs latest sampled years inside the selected period
+// (up to 3 years each side); 'previous': the last sampled year vs the one before it.
+export function changeOver(years, period, latestYear, basis) {
+  let pts = yearlyMeans(years);
+  let k = 1;
+  if (basis === 'period') {
+    const start = periodStartYear(period, latestYear);
+    pts = pts.filter((p) => p.year >= start);
+    k = Math.min(3, Math.floor(pts.length / 2));
+  } else {
+    pts = pts.slice(-2);
+  }
+  if (pts.length < 2) return null;
   const earlyPts = pts.slice(0, k);
   const latePts = pts.slice(-k);
   const early = pooledMean(earlyPts);
   if (early === 0) return null;
-  const late = pooledMean(latePts);
   return {
-    pct: Math.round(((late - early) / early) * 100),
+    pct: Math.round(((pooledMean(latePts) - early) / early) * 100),
     early: [earlyPts[0].year, earlyPts.at(-1).year],
     late: [latePts[0].year, latePts.at(-1).year],
   };
