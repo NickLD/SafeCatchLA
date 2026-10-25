@@ -66,7 +66,8 @@ const H = { '1994': [0.8, 1], '1995': [0.6, 1], '2008': [0.5, 2], '2016': [0.3, 
 
 test('changeOver period compares early vs late years inside the period', () => {
   expect(changeOver(H, 'all', 2026, 'period')).toEqual({ pct: -64, early: [1994, 1995], late: [2016, 2018] });
-  expect(changeOver(H, 20, 2026, 'period')).toEqual({ pct: -20, early: [2008, 2008], late: [2018, 2018] });
+  // 2008 alone vs the 2016-2018 window (0.3 and 0.2 average 0.25)
+  expect(changeOver(H, 20, 2026, 'period')).toEqual({ pct: 0, early: [2008, 2008], late: [2016, 2018] });
   expect(changeOver(H, 10, 2026, 'period')).toBeNull(); // 2017+ has only 2018
   expect(changeOver(H, 5, 2026, 'period')).toBeNull(); // only one sampled year
 });
@@ -86,4 +87,10 @@ test('speciesWithData lists species that have samples in the period, most-sample
   expect(speciesWithData(site, 20, 2026)).toEqual(['DRUM', 'BASS']);
   expect(speciesWithData(site, 'all', 2026)).toEqual(['BOWFIN', 'DRUM', 'BASS']);
   expect(speciesWithData(site, 5, 2026)).toEqual([]);
+});
+
+test('changeOver groups by time window, so sparse years far apart are not lumped together', () => {
+  // Lake Peigneur flathead catfish: the 2005 result must not count as "recent" next to 2025.
+  const peigneur = { '1997': [0.87, 3], '2001': [0.46, 2], '2005': [0.72, 2], '2025': [0.102, 1] };
+  expect(changeOver(peigneur, 'all', 2026, 'period')).toEqual({ pct: -65, early: [1997, 1997], late: [2025, 2025] });
 });

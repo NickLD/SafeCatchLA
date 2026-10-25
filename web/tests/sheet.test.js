@@ -97,7 +97,7 @@ test('change tile follows the period and can switch to previous sample', async (
   Object.assign(app, { sites: [site], latestYear: 2026, period: 20, site: '0001', species: 'LARGEMOUTH BASS', compare: null });
   render(SiteSheet, { site, national: NATIONAL, latestYear: 2026, period: 20 });
   const summary = screen.getByRole('region', { name: 'Summary' });
-  expect(within(summary).getByText('↓20%')).toBeTruthy();
+  expect(within(summary).getByText('0%')).toBeTruthy();
   expect(within(summary).getByText('since 2008')).toBeTruthy();
   await fireEvent.change(within(summary).getByLabelText('Compare change'), { target: { value: 'previous' } });
   expect(within(summary).getByText('↓33%')).toBeTruthy();
