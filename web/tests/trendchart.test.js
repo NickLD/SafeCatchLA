@@ -92,3 +92,28 @@ test('many sampling dates in a year are shown as a range', async () => {
   expect(status).toContain('5 samples (10 fish)');
   expect(status).toContain('sampled Mar 2 – Oct 3 (5 dates)');
 });
+
+test('every sample dot lands inside the plot, even when all samples share one year', () => {
+  // Lake Peigneur sheepshead: both samples on 2001-05-31.
+  const sheep = [
+    { date: '2001-05-31', value: 0.08, nd: false, weightG: 1530.9, lengthCm: 44, nFish: 1, composite: false },
+    { date: '2001-05-31', value: 0.07, nd: false, weightG: 949.7, lengthCm: 35.9, nFish: 2, composite: true },
+  ];
+  const { container } = render(TrendChart, { years: { '2001': [0.15, 2] }, samples: sheep, cuts: [34.7, 40.5] });
+  const xs = [...container.querySelectorAll('circle.sample')].map((c) => Number(c.getAttribute('cx')));
+  expect(xs).toHaveLength(2);
+  expect(Math.abs(xs[0] - xs[1])).toBeGreaterThanOrEqual(6); // same-day samples are nudged apart to be tappable
+  for (const x of xs) expect(x).toBeGreaterThanOrEqual(34);
+  for (const x of xs) expect(x).toBeLessThanOrEqual(332);
+});
+
+test('samples early in the first year and late in the last year stay inside the plot', () => {
+  const edge = [
+    { date: '1994-01-15', value: 0.2, nd: false, weightG: 300, lengthCm: 30, nFish: 1, composite: false },
+    { date: '2016-12-20', value: 0.3, nd: false, weightG: 300, lengthCm: 30, nFish: 1, composite: false },
+  ];
+  const { container } = render(TrendChart, { years: { '1994': [0.2, 1], '2016': [0.3, 1] }, samples: edge, cuts: CUTS });
+  const xs = [...container.querySelectorAll('circle.sample')].map((c) => Number(c.getAttribute('cx')));
+  expect(Math.min(...xs)).toBeGreaterThanOrEqual(34);
+  expect(Math.max(...xs)).toBeLessThanOrEqual(332);
+});

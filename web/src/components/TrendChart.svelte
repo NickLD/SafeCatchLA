@@ -18,7 +18,10 @@
   let pts = $derived(yearlyMeans(samples.length ? yearsFromSamples(visible) : years));
   let allPts = $derived(yearlyMeans(years));
   let x0 = $derived(allPts.length ? allPts[0].year : 2000);
-  let x1 = $derived(allPts.length && allPts.at(-1).year > x0 ? allPts.at(-1).year : x0 + 1);
+  let x1 = $derived(allPts.length ? allPts.at(-1).year : x0);
+  // Samples are spread across their year (±half a year), so pad the axis by half a year on each side.
+  let lo = $derived(x0 - 0.5);
+  let hi = $derived(x1 + 0.5);
   let maxData = $derived(Math.max(0, ...allPts.map((p) => p.mean), ...samples.map((s) => s.value ?? 0)));
   let yMax = $derived(Math.max(maxData * 1.1, EPA_GUIDELINE_PPM + 0.05, stateAvg ? stateAvg * 1.2 : 0));
   let present = $derived(SIZE_CLASSES.filter((c) => classed.some((s) => s.cls === c)));
@@ -27,11 +30,24 @@
   let startYear = $derived(period === 'all' || latestYear === null ? null : periodStartYear(period, latestYear));
   let markX = $derived(startYear !== null && startYear > x0 ? Math.min(sx(startYear - 0.5), W - R) : null);
 
-  const sx = (year) => L + ((year - x0) / (x1 - x0)) * (W - L - R);
+  const sx = (year) => L + ((year - lo) / (hi - lo)) * (W - L - R);
   const sy = (v) => T + (1 - v / yMax) * (H - T - B);
   const ticks = (max) => [0, max / 2, max].map((v) => Math.round(v * 100) / 100);
   // Spread same-year samples across the year so they don't stack on one vertical line.
   const sampleX = (s) => sx(Number(s.date.slice(0, 4)) + (Number(s.date.slice(5, 7)) - 6.5) / 12);
+  const SAME_DAY_GAP = 7; // px between samples taken on the same day, so each can be tapped
+  let xs = $derived.by(() => {
+    const byDate = new Map();
+    visible.forEach((s, i) => byDate.set(s.date, [...(byDate.get(s.date) ?? []), i]));
+    const out = [];
+    for (const idx of byDate.values()) {
+      idx.forEach((i, k) => {
+        const x = sampleX(visible[i]) + (k - (idx.length - 1) / 2) * SAME_DAY_GAP;
+        out[i] = Math.min(W - R, Math.max(L, x));
+      });
+    }
+    return out;
+  });
 
   function toggle(cls) {
     const next = new Set(hidden);
@@ -52,7 +68,7 @@
     const only = p.n === 1 && visible.filter((s) => s.date.startsWith(String(p.year)));
     if (only && only.length === 1) {
       const s = only[0];
-      pick({ kind: 'sample', s, x: sampleX(s), y: sy(s.value ?? 0), soleInYear: true });
+      pick({ kind: 'sample', s, x: xs[visible.indexOf(s)], y: sy(s.value ?? 0), soleInYear: true });
     } else {
       pick({ kind: 'year', p, x: sx(p.year), y: sy(p.mean) });
     }
@@ -78,8 +94,8 @@
         <line x1={L} x2={W - R} y1={sy(t)} y2={sy(t)} class="grid" />
         <text x={L - 4} y={sy(t) + 3} text-anchor="end" class="tick">{t}</text>
       {/each}
-      <text x={L} y={H - 6} class="tick">{x0}</text>
-      <text x={W - R} y={H - 6} text-anchor="end" class="tick">{x1}</text>
+      <text x={sx(x0)} y={H - 6} text-anchor={x0 === x1 ? 'middle' : 'start'} class="tick">{x0}</text>
+      {#if x1 !== x0}<text x={sx(x1)} y={H - 6} text-anchor="end" class="tick">{x1}</text>{/if}
 
       {#if markX !== null}
         <rect x={L} y={T} width={markX - L} height={H - T - B} class="before" />
@@ -107,7 +123,7 @@
       {/if}
       <!-- Samples on top of the average points so a lone sample can always be tapped. -->
       {#each visible as s, i (i)}
-        {@const x = sampleX(s)}
+        {@const x = xs[i]}
         {@const y = sy(s.value ?? 0)}
         <circle cx={x} cy={y} r="4" class="sample" style:fill={s.cls ? SIZE_COLORS[s.cls] : '#9e9e9e'}
                 role="button" tabindex="0" aria-label={describeSample(s)}
