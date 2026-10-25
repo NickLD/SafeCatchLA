@@ -5,8 +5,9 @@ export function displaySpecies(name) {
   return name.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
+// Two meaningful digits: 2 decimals normally, 3 for low (but non-zero) values under 0.1 ppm.
 export function formatPpm(v) {
-  return v.toFixed(2);
+  return v.toFixed(v > 0 && v < 0.1 ? 3 : 2);
 }
 
 // 'YYYY-MM-DD' dates are calendar days; full ISO timestamps are shown in the viewer's local time.

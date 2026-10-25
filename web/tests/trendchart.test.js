@@ -13,7 +13,7 @@ const YEARS = { '1994': [0.8, 2], '2016': [0.3, 1] };
 test('tapping a sample shows its size and weight', async () => {
   render(TrendChart, { years: YEARS, samples: SAMPLES, cuts: CUTS });
   await fireEvent.click(screen.getByRole('button', { name: /Sep 1, 1994/ }));
-  expect(screen.getByRole('status').textContent).toContain('Sep 1, 1994 · 0.60 ppm · 17.7 in, 2.0 lb · single fish');
+  expect(screen.getByRole('status').textContent).toContain('Sep 1, 1994 · 0.60 ppm · 17.72 in, 1.98 lb · single fish');
 });
 
 test('size chips filter the samples and the yearly line', async () => {
@@ -50,8 +50,8 @@ test('tapping the yearly point of a single-sample year shows that sample and its
   render(TrendChart, { years: { '2016': [0.3, 1] }, samples: one, cuts: CUTS });
   await fireEvent.click(screen.getByRole('button', { name: '2016: 0.30 ppm' }));
   const status = screen.getByRole('status').textContent;
-  expect(status).toContain('May 1, 2016 · 0.30 ppm · 14.2 in, 1.1 lb · average of 3 fish');
-  expect(status).toContain('Medium (13–15.5")');
+  expect(status).toContain('May 1, 2016 · 0.30 ppm · 14.17 in, 1.10 lb · average of 3 fish');
+  expect(status).toContain('Medium (13.0–15.5")');
   expect(status).toContain('1 sample');
 });
 

@@ -1,10 +1,11 @@
 // Fish size classes (per-species length thirds from the pipeline) and sample descriptions.
+import { formatPpm } from './format.js';
 export const SIZE_CLASSES = ['small', 'medium', 'large'];
 export const SIZE_COLORS = { small: '#80cdc1', medium: '#2c7bb6', large: '#542788' };
 
 const CM_PER_IN = 2.54;
 const G_PER_LB = 453.592;
-const halfInch = (cm) => Math.round((cm / CM_PER_IN) * 2) / 2;
+const inches = (cm) => (cm / CM_PER_IN).toFixed(1);
 
 export function sizeClass(lengthCm, cuts) {
   if (lengthCm == null || !cuts) return null;
@@ -14,7 +15,7 @@ export function sizeClass(lengthCm, cuts) {
 }
 
 export function classLabel(cls, cuts) {
-  const [a, b] = cuts.map(halfInch);
+  const [a, b] = cuts.map(inches);
   if (cls === 'small') return `Small (under ${a}")`;
   if (cls === 'medium') return `Medium (${a}–${b}")`;
   return `Large (${b}"+)`;
@@ -22,10 +23,10 @@ export function classLabel(cls, cuts) {
 
 export function describeSample(s) {
   const date = new Date(`${s.date}T00:00:00`).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-  const hg = s.nd ? 'not detected' : `${s.value.toFixed(2)} ppm`;
+  const hg = s.nd ? 'not detected' : `${formatPpm(s.value)} ppm`;
   const parts = [];
-  if (s.lengthCm != null) parts.push(`${(s.lengthCm / CM_PER_IN).toFixed(1)} in`);
-  if (s.weightG != null) parts.push(`${(s.weightG / G_PER_LB).toFixed(1)} lb`);
+  if (s.lengthCm != null) parts.push(`${(s.lengthCm / CM_PER_IN).toFixed(2)} in`);
+  if (s.weightG != null) parts.push(`${(s.weightG / G_PER_LB).toFixed(2)} lb`);
   const size = parts.length ? parts.join(', ') : 'size not recorded';
   const fish = s.composite && s.nFish > 1 ? `average of ${s.nFish} fish` : 'single fish';
   return `${date} · ${hg} · ${size} · ${fish}`;

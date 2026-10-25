@@ -11,17 +11,20 @@ test('sizeClass splits at the cutoffs', () => {
   expect(sizeClass(30, undefined)).toBeNull();
 });
 
-test('classLabel shows inches, rounded to the half inch', () => {
-  expect(classLabel('small', CUTS)).toBe('Small (under 13")');
-  expect(classLabel('medium', CUTS)).toBe('Medium (13–15.5")');
+test('classLabel shows inches to one decimal', () => {
+  expect(classLabel('small', CUTS)).toBe('Small (under 13.0")');
+  expect(classLabel('medium', CUTS)).toBe('Medium (13.0–15.5")');
   expect(classLabel('large', CUTS)).toBe('Large (15.5"+)');
+  expect(classLabel('medium', [32.8, 39.4])).toBe('Medium (12.9–15.5")');
 });
 
 test('describeSample', () => {
   expect(describeSample({ date: '1994-08-12', value: 0.27, nd: false, weightG: 419.6, lengthCm: 31.1, nFish: 5, composite: true }))
-    .toBe('Aug 12, 1994 · 0.27 ppm · 12.2 in, 0.9 lb · average of 5 fish');
+    .toBe('Aug 12, 1994 · 0.27 ppm · 12.24 in, 0.93 lb · average of 5 fish');
   expect(describeSample({ date: '2001-03-02', value: 0, nd: true, weightG: null, lengthCm: null, nFish: 1, composite: false }))
     .toBe('Mar 2, 2001 · not detected · size not recorded · single fish');
+  expect(describeSample({ date: '2020-06-01', value: 0.046, nd: false, weightG: null, lengthCm: 30, nFish: 1, composite: false }))
+    .toBe('Jun 1, 2020 · 0.046 ppm · 11.81 in · single fish');
 });
 
 test('yearsFromSamples rebuilds yearly sums', () => {
