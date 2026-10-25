@@ -182,3 +182,12 @@ test('change tile warns when an end of the comparison is a single sample', async
   const summary = screen.getByRole('region', { name: 'Summary' });
   expect(within(summary).getByText('⚠ 1 sample at start')).toBeTruthy();
 });
+
+test('data source explains duplicate handling with the merge count', () => {
+  Object.assign(app, { meta: { updated: '2026-10-24', mergedDuplicates: 1255, skipped: { rejected: 26, shellfish: 69 } }, status: null });
+  renderSheet();
+  expect(screen.getByText(/1,255 lab field duplicates/)).toBeTruthy();
+  expect(screen.getByText(/averaged into one sample/)).toBeTruthy();
+  expect(screen.getByText(/26 results LDEQ marked as rejected/)).toBeTruthy();
+  Object.assign(app, { meta: null });
+});

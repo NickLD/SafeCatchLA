@@ -128,7 +128,7 @@
 
     <CompareBars {site} {national} {period} {latestYear} options={shown} selected={species} />
     <AllSpeciesList {site} {period} {latestYear} />
-    <DataSource siteId={site.id} updated={app.meta?.updated} checked={app.status?.checkedAt} />
+    <DataSource siteId={site.id} updated={app.meta?.updated} checked={app.status?.checkedAt} meta={app.meta} />
   </div>
   {#if sheetState === 'peek' && !hintSeen}
     <button class="hint" onclick={() => setState('expanded')}>
