@@ -41,21 +41,37 @@
     if (selected?.kind === 'sample' && next.has(selected.s.cls)) selected = null;
   }
 
+  let showAvg = $state(true);
+
   function pick(item) {
     selected = item;
+  }
+
+  // A year with one sample: its average point sits on that sample, so show the sample itself.
+  function pickYear(p) {
+    const only = p.n === 1 && visible.filter((s) => s.date.startsWith(String(p.year)));
+    if (only && only.length === 1) {
+      const s = only[0];
+      pick({ kind: 'sample', s, x: sampleX(s), y: sy(s.value ?? 0), soleInYear: true });
+    } else {
+      pick({ kind: 'year', p, x: sx(p.year), y: sy(p.mean) });
+    }
   }
 </script>
 
 <figure>
-  {#if present.length}
-    <div class="chips" role="group" aria-label="Fish size">
+  <div class="chips" role="group" aria-label="Chart layers">
+    <button class="chip" aria-pressed={showAvg} onclick={() => (showAvg = !showAvg)} style:--c="var(--text)">
+      <span class="swatch line-swatch"></span>Yearly average
+    </button>
+    {#if present.length}
       {#each present as cls (cls)}
         <button class="chip" aria-pressed={!hidden.has(cls)} onclick={() => toggle(cls)} style:--c={SIZE_COLORS[cls]}>
           <span class="swatch"></span>{classLabel(cls, cuts)}
         </button>
       {/each}
-    </div>
-  {/if}
+    {/if}
+  </div>
   <div class="wrap">
     <svg viewBox="0 0 {W} {H}" role="img" aria-label="Mercury over time, by sample">
       {#each ticks(yMax) as t (t)}
@@ -80,6 +96,16 @@
         <circle cx={selected.x} cy={selected.y} r="8" class="ring" />
       {/if}
 
+      {#if showAvg}
+        <polyline points={pts.map((p) => `${sx(p.year)},${sy(p.mean)}`).join(' ')} class="line" />
+        {#each pts as p (p.year)}
+          <circle cx={sx(p.year)} cy={sy(p.mean)} r="4.5" class="pt"
+                  role="button" tabindex="0" aria-label="{p.year}: {formatPpm(p.mean)} ppm"
+                  onclick={() => pickYear(p)}
+                  onkeydown={(e) => e.key === 'Enter' && pickYear(p)} />
+        {/each}
+      {/if}
+      <!-- Samples on top of the average points so a lone sample can always be tapped. -->
       {#each visible as s, i (i)}
         {@const x = sampleX(s)}
         {@const y = sy(s.value ?? 0)}
@@ -88,24 +114,16 @@
                 onclick={() => pick({ kind: 'sample', s, x, y })}
                 onkeydown={(e) => e.key === 'Enter' && pick({ kind: 'sample', s, x, y })} />
       {/each}
-      <polyline points={pts.map((p) => `${sx(p.year)},${sy(p.mean)}`).join(' ')} class="line" />
-      {#each pts as p (p.year)}
-        <circle cx={sx(p.year)} cy={sy(p.mean)} r="4.5" class="pt"
-                role="button" tabindex="0" aria-label="{p.year}: {formatPpm(p.mean)} ppm"
-                onclick={() => pick({ kind: 'year', p, x: sx(p.year), y: sy(p.mean) })}
-                onkeydown={(e) => e.key === 'Enter' && pick({ kind: 'year', p, x: sx(p.year), y: sy(p.mean) })} />
-      {/each}
     </svg>
   </div>
   <div class="key">
     <span><i class="k-epa"></i>EPA guideline (0.3 ppm)</span>
     {#if stateAvg !== null}<span><i class="k-state"></i>Louisiana avg {formatPpm(stateAvg)}</span>{/if}
-    <span><i class="k-line"></i>Yearly average</span>
     {#if classed.some((s) => !s.cls)}<span><i class="k-dot"></i>Size not recorded</span>{/if}
   </div>
   <figcaption role="status">
     {#if selected?.kind === 'sample'}
-      <b>{describeSample(selected.s)}</b>{#if selected.s.cls}<span class="cls" style:--c={SIZE_COLORS[selected.s.cls]}>{classLabel(selected.s.cls, cuts)}</span>{/if}
+      <b>{describeSample(selected.s)}</b>{#if selected.soleInYear} · the only sample that year (1 sample){/if}{#if selected.s.cls}<span class="cls" style:--c={SIZE_COLORS[selected.s.cls]}>{classLabel(selected.s.cls, cuts)}</span>{/if}
     {:else if selected?.kind === 'year'}
       <b>{selected.p.year}: {formatPpm(selected.p.mean)} ppm average</b> ({selected.p.n} {selected.p.n === 1 ? 'sample' : 'samples'})
     {:else}
@@ -123,6 +141,7 @@
   }
   .chip[aria-pressed='false'] { opacity: 0.45; text-decoration: line-through; }
   .swatch { width: 10px; height: 10px; border-radius: 50%; background: var(--c); }
+  .line-swatch { width: 14px; height: 3px; border-radius: 2px; }
   svg { width: 100%; height: auto; display: block; }
   .grid { stroke: var(--border); stroke-width: 0.5; }
   .tick { font-size: 9px; fill: var(--muted); }
@@ -135,7 +154,6 @@
   .key i { display: inline-block; width: 16px; height: 0; }
   .k-epa { border-top: 2px dashed #d7191c; }
   .k-state { border-top: 2px dotted var(--muted); }
-  .k-line { border-top: 2px solid var(--text); opacity: 0.7; }
   .key .k-dot { width: 8px; height: 8px; border-radius: 50%; background: #9e9e9e; }
   .state { stroke: var(--muted); stroke-dasharray: 2 2; }
   .sample { opacity: 0.75; stroke: var(--surface); stroke-width: 0.8; cursor: pointer; }

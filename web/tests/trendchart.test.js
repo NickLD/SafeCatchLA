@@ -44,3 +44,32 @@ test('no period marker for all years, or when the whole history is inside the pe
   render(TrendChart, { years: { '2020': [0.3, 1], '2024': [0.2, 1] }, samples: [], period: 10, latestYear: 2026 });
   expect(screen.queryByText(/yrs →/)).toBeNull();
 });
+
+test('tapping the yearly point of a single-sample year shows that sample and its size', async () => {
+  const one = [{ date: '2016-05-01', value: 0.3, nd: false, weightG: 500, lengthCm: 36, nFish: 3, composite: true }];
+  render(TrendChart, { years: { '2016': [0.3, 1] }, samples: one, cuts: CUTS });
+  await fireEvent.click(screen.getByRole('button', { name: '2016: 0.30 ppm' }));
+  const status = screen.getByRole('status').textContent;
+  expect(status).toContain('May 1, 2016 · 0.30 ppm · 14.2 in, 1.1 lb · average of 3 fish');
+  expect(status).toContain('Medium (13–15.5")');
+  expect(status).toContain('1 sample');
+});
+
+test('sample dots are drawn above the yearly points so they can be tapped', () => {
+  const { container } = render(TrendChart, { years: YEARS, samples: SAMPLES, cuts: CUTS });
+  const circles = [...container.querySelectorAll('circle')];
+  const lastYearPoint = circles.map((c) => c.classList.contains('pt')).lastIndexOf(true);
+  const firstSample = circles.findIndex((c) => c.classList.contains('sample'));
+  expect(firstSample).toBeGreaterThan(lastYearPoint);
+});
+
+test('yearly average is a pill that shows and hides the average line', async () => {
+  render(TrendChart, { years: YEARS, samples: SAMPLES, cuts: CUTS });
+  const pill = screen.getByRole('button', { name: 'Yearly average' });
+  expect(pill.getAttribute('aria-pressed')).toBe('true');
+  expect(screen.getByRole('button', { name: '1994: 0.40 ppm' })).toBeTruthy();
+  await fireEvent.click(pill);
+  expect(pill.getAttribute('aria-pressed')).toBe('false');
+  expect(screen.queryByRole('button', { name: /^1994: / })).toBeNull();
+  expect(screen.getAllByRole('button', { name: /ppm ·/ })).toHaveLength(3); // samples stay
+});

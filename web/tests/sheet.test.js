@@ -156,3 +156,29 @@ test('peek shows a swipe hint that expands the drawer', async () => {
   expect(screen.queryByRole('button', { name: /Swipe up for full history/ })).toBeNull();
   expect(localStorage.getItem('safecatch.expandedOnce')).toBe('1');
 });
+
+test('single-sample results carry a 1-sample warning', () => {
+  const one = {
+    ...SITE, n: 4,
+    species: {
+      BOWFIN: { n: 1, latest: ['2016-05-01', 0.5, 1], years: { '2016': [0.5, 1] } },
+      'LARGEMOUTH BASS': { n: 3, latest: ['2016-05-01', 0.31, 3], years: { '1994': [0.5, 1], '2016': [0.93, 3] } },
+    },
+  };
+  Object.assign(app, { sites: [one], latestYear: 2026, period: 'all', site: '0001', species: 'BOWFIN', compare: null });
+  render(SiteSheet, { site: one, national: NATIONAL, latestYear: 2026, period: 'all' });
+  const summary = screen.getByRole('region', { name: 'Summary' });
+  expect(within(summary).getAllByText('⚠ 1 sample').length).toBe(2); // avg and latest tiles
+  expect(within(screen.getByRole('region', { name: 'Compare' })).getByText('⚠ 1 sample')).toBeTruthy();
+  const rows = within(screen.getByRole('list', { name: 'All species here' })).getAllByRole('listitem');
+  expect(rows.find((r) => r.textContent.startsWith('Bowfin')).textContent).toContain('⚠ 1 sample');
+  expect(rows.find((r) => r.textContent.startsWith('Largemouth')).textContent).not.toContain('⚠');
+});
+
+test('change tile warns when an end of the comparison is a single sample', async () => {
+  const site = { ...SITE, species: { 'LARGEMOUTH BASS': { n: 4, latest: ['2016-05-01', 0.3, 3], years: { '1994': [0.5, 1], '2016': [0.9, 3] } } } };
+  Object.assign(app, { sites: [site], latestYear: 2026, period: 'all', site: '0001', species: 'LARGEMOUTH BASS', compare: null });
+  render(SiteSheet, { site, national: NATIONAL, latestYear: 2026, period: 'all' });
+  const summary = screen.getByRole('region', { name: 'Summary' });
+  expect(within(summary).getByText('⚠ 1 sample at start')).toBeTruthy();
+});

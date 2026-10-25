@@ -78,6 +78,8 @@ export function changeOver(years, period, latestYear, basis) {
     pct: Math.round(((pooledMean(latePts) - early) / early) * 100),
     early: [earlyPts[0].year, earlyPts.at(-1).year],
     late: [latePts[0].year, latePts.at(-1).year],
+    earlyN: earlyPts.reduce((a, p) => a + p.n, 0),
+    lateN: latePts.reduce((a, p) => a + p.n, 0),
   };
 }
 
