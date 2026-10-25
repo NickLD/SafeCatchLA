@@ -41,3 +41,18 @@ export function yearsFromSamples(samples) {
   }
   return years;
 }
+
+const monthDay = (d) => new Date(`${d}T00:00:00`).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+// For a yearly-average point: "2 samples (6 fish) · sampled Aug 12 and Sep 1".
+// Fish counts every fish in a composite; long date lists collapse to a range.
+export function describeYear(samples) {
+  const fish = samples.reduce((a, s) => a + (s.nFish ?? 1), 0);
+  const dates = [...new Set(samples.map((s) => s.date))].sort();
+  let when;
+  if (dates.length > 3) when = `${monthDay(dates[0])} – ${monthDay(dates.at(-1))} (${dates.length} dates)`;
+  else if (dates.length > 1) when = `${dates.slice(0, -1).map(monthDay).join(', ')} and ${monthDay(dates.at(-1))}`;
+  else when = monthDay(dates[0]);
+  const n = samples.length;
+  return `${n} ${n === 1 ? 'sample' : 'samples'} (${fish} fish) · sampled ${when}`;
+}

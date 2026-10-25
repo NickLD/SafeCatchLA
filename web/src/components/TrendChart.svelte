@@ -1,7 +1,7 @@
 <script>
   import { EPA_GUIDELINE_PPM } from '../lib/config.js';
   import { formatPpm } from '../lib/format.js';
-  import { classLabel, describeSample, SIZE_CLASSES, SIZE_COLORS, sizeClass, yearsFromSamples } from '../lib/size.js';
+  import { classLabel, describeSample, describeYear, SIZE_CLASSES, SIZE_COLORS, sizeClass, yearsFromSamples } from '../lib/size.js';
   import { periodStartYear, yearlyMeans } from '../lib/stats.js';
 
   // years: full history for one species at this site (used until samples load);
@@ -125,7 +125,9 @@
     {#if selected?.kind === 'sample'}
       <b>{describeSample(selected.s)}</b>{#if selected.soleInYear} · the only sample that year (1 sample){/if}{#if selected.s.cls}<span class="cls" style:--c={SIZE_COLORS[selected.s.cls]}>{classLabel(selected.s.cls, cuts)}</span>{/if}
     {:else if selected?.kind === 'year'}
-      <b>{selected.p.year}: {formatPpm(selected.p.mean)} ppm average</b> ({selected.p.n} {selected.p.n === 1 ? 'sample' : 'samples'})
+      {@const inYear = visible.filter((s) => s.date.startsWith(String(selected.p.year)))}
+      <b>{selected.p.year}: {formatPpm(selected.p.mean)} ppm average</b> ·
+      {inYear.length ? describeYear(inYear) : `${selected.p.n} ${selected.p.n === 1 ? 'sample' : 'samples'}`}
     {:else}
       Dots are individual samples, colored by fish size. The line is the yearly average. Tap any point for details.
     {/if}

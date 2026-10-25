@@ -73,3 +73,22 @@ test('yearly average is a pill that shows and hides the average line', async () 
   expect(screen.queryByRole('button', { name: /^1994: / })).toBeNull();
   expect(screen.getAllByRole('button', { name: /ppm ·/ })).toHaveLength(3); // samples stay
 });
+
+test('tapping a yearly average shows sampling dates and total fish', async () => {
+  render(TrendChart, { years: YEARS, samples: SAMPLES, cuts: CUTS });
+  await fireEvent.click(screen.getByRole('button', { name: '1994: 0.40 ppm' }));
+  const status = screen.getByRole('status').textContent.replace(/\s+/g, ' ');
+  expect(status).toContain('1994: 0.40 ppm average');
+  expect(status).toContain('2 samples (6 fish)');
+  expect(status).toContain('sampled Aug 12 and Sep 1');
+});
+
+test('many sampling dates in a year are shown as a range', async () => {
+  const many = ['03-02', '04-10', '05-05', '06-20', '10-03'].map((md) => (
+    { date: `2001-${md}`, value: 0.3, nd: false, weightG: 400, lengthCm: 30, nFish: 2, composite: true }));
+  render(TrendChart, { years: { '2001': [1.5, 5] }, samples: many, cuts: CUTS });
+  await fireEvent.click(screen.getByRole('button', { name: '2001: 0.30 ppm' }));
+  const status = screen.getByRole('status').textContent.replace(/\s+/g, ' ');
+  expect(status).toContain('5 samples (10 fish)');
+  expect(status).toContain('sampled Mar 2 – Oct 3 (5 dates)');
+});
