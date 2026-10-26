@@ -76,3 +76,17 @@ test('checking a group selects all its species; unchecking one makes the group p
   await fireEvent.click(within(dialog).getByRole('checkbox', { name: 'All species' }));
   expect(app.filter).toEqual([]);
 });
+
+test('period pill lets you specify a custom number of years', async () => {
+  Object.assign(app, { sites: [], period: 10, latestYear: 2026, filter: [] });
+  render(TopBar, { onPick: () => {}, onLocate: () => {} });
+  await fireEvent.change(screen.getByLabelText('Period'), { target: { value: 'custom' } });
+  const dialog = screen.getByRole('dialog', { name: 'Custom period' });
+  await fireEvent.input(within(dialog).getByLabelText('Number of years'), { target: { value: '7' } });
+  await fireEvent.click(within(dialog).getByRole('button', { name: 'Apply' }));
+  expect(app.period).toBe(7);
+  expect(screen.queryByRole('dialog', { name: 'Custom period' })).toBeNull();
+  const select = screen.getByLabelText('Period');
+  expect(select.value).toBe('7');
+  expect([...select.querySelectorAll('option')].map((o) => o.textContent)).toContain('Last 7 yrs');
+});

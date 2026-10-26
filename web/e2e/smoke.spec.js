@@ -12,7 +12,7 @@ test('deep link opens Lake Henderson', async ({ page }) => {
 });
 
 test('bad deep link still loads map', async ({ page }) => {
-  await page.goto('/#site=nope&period=7&color=zzz');
+  await page.goto('/#site=nope&period=77&color=zzz');
   await expect(page.locator('path.leaflet-interactive').first()).toBeVisible();
   await expect(page.getByText(/This is not health advice/)).toHaveCount(0);
 });

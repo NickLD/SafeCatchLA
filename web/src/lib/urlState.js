@@ -1,12 +1,13 @@
 // Shareable app state in location.hash, e.g. #site=0436&species=LARGEMOUTH%20BASS
-import { ALL_SPECIES, DEFAULT_PERIOD, PERIODS } from './config.js';
+import { ALL_SPECIES, DEFAULT_PERIOD, MAX_CUSTOM_YEARS } from './config.js';
 import { MODES } from './coloring.js';
 
 export const DEFAULTS = { site: null, species: null, filter: [], period: DEFAULT_PERIOD, color: 'avg', compare: null, range: null };
 
 function parsePeriod(v) {
-  const p = v === 'all' ? 'all' : Number(v);
-  return PERIODS.includes(p) ? p : undefined;
+  if (v === 'all') return 'all';
+  const p = Number(v);
+  return Number.isInteger(p) && p >= 1 && p <= MAX_CUSTOM_YEARS ? p : undefined;
 }
 
 export function parseHash(hash) {

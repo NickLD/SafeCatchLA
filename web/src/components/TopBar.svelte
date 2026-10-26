@@ -1,5 +1,5 @@
 <script>
-  import { CONTAMINANTS, PERIOD_LABELS, PERIODS } from '../lib/config.js';
+  import { CONTAMINANTS, MAX_CUSTOM_YEARS, PERIOD_LABELS, PERIODS } from '../lib/config.js';
   import { MODE_SHORT, MODES } from '../lib/coloring.js';
   import { searchSites } from '../lib/search.js';
   import { app, update } from '../lib/state.svelte.js';
@@ -27,6 +27,26 @@
     ro.observe(pillsEl);
     return () => ro.disconnect();
   });
+
+  // "Specify…" asks for a custom number of years; the select snaps back to the current period meanwhile.
+  let customOpen = $state(false);
+  let customYears = $state('');
+  function onPeriod(e) {
+    const v = e.currentTarget.value;
+    if (v === 'custom') {
+      e.currentTarget.value = String(app.period);
+      customYears = typeof app.period === 'number' ? String(app.period) : '';
+      customOpen = true;
+    } else {
+      update({ period: v === 'all' ? 'all' : Number(v) });
+    }
+  }
+  let customValid = $derived(Number.isInteger(Number(customYears)) && Number(customYears) >= 1 && Number(customYears) <= MAX_CUSTOM_YEARS);
+  function applyCustom() {
+    if (!customValid) return;
+    update({ period: Number(customYears) });
+    customOpen = false;
+  }
 
   function pick(site) {
     query = '';
@@ -61,12 +81,28 @@
     <select aria-label="Color by" value={app.color} onchange={(e) => update({ color: e.currentTarget.value, range: null })}>
       {#each MODES as m (m)}<option value={m}>{MODE_SHORT[m]}</option>{/each}
     </select>
-    <select aria-label="Period" value={String(app.period)}
-            onchange={(e) => { const v = e.currentTarget.value; update({ period: v === 'all' ? 'all' : Number(v) }); }}>
+    <select aria-label="Period" value={String(app.period)} onchange={onPeriod}>
       {#each PERIODS as p (p)}<option value={String(p)}>{PERIOD_LABELS[p]}</option>{/each}
+      {#if !PERIODS.includes(app.period)}<option value={String(app.period)}>Last {app.period} yrs</option>{/if}
+      <option value="custom">Specify…</option>
     </select>
   </div>
 </div>
+
+{#if customOpen}
+  <div class="custom" role="dialog" aria-label="Custom period">
+    <label>
+      Last
+      <input type="number" inputmode="numeric" min="1" max={MAX_CUSTOM_YEARS} aria-label="Number of years"
+             bind:value={customYears} onkeydown={(e) => e.key === 'Enter' && applyCustom()} />
+      years
+    </label>
+    <div class="custom-actions">
+      <button onclick={() => (customOpen = false)}>Cancel</button>
+      <button class="apply" onclick={applyCustom} disabled={!customValid}>Apply</button>
+    </div>
+  </div>
+{/if}
 
 <style>
   .topbar {
@@ -100,4 +136,14 @@
   li { padding: 10px 14px; cursor: pointer; display: flex; flex-direction: column; min-height: 44px; justify-content: center; }
   li:hover, li:focus { background: var(--hover); outline: none; }
   small { color: var(--muted); }
+  .custom {
+    position: fixed; z-index: 1400; top: 112px; right: 8px; width: min(260px, calc(100vw - 16px));
+    background: var(--surface); color: var(--text); border-radius: 12px; box-shadow: var(--shadow); padding: 12px;
+  }
+  .custom label { display: flex; align-items: center; gap: 8px; font-size: 15px; }
+  .custom input { width: 72px; min-height: 40px; padding: 0 8px; font: inherit; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); }
+  .custom-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; }
+  .custom-actions button { min-height: 36px; padding: 0 14px; border-radius: 18px; border: 1px solid var(--border); background: var(--surface); color: var(--text); cursor: pointer; }
+  .custom-actions .apply { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .custom-actions .apply:disabled { opacity: 0.5; cursor: default; }
 </style>

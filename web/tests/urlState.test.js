@@ -11,7 +11,7 @@ test('parseHash valid', () => {
 });
 
 test('parseHash ignores bad values', () => {
-  expect(parseHash('#period=7&color=rainbow&junk')).toEqual(DEFAULTS);
+  expect(parseHash('#period=77&color=rainbow&junk')).toEqual(DEFAULTS);
   expect(parseHash('')).toEqual(DEFAULTS);
   expect(parseHash('#%E0%A4%A')).toEqual(DEFAULTS);
 });
@@ -46,4 +46,10 @@ test('range round-trips and bad ranges are ignored', () => {
   expect(parseHash('#range=x,1').range).toBeNull();
   const s = { ...DEFAULTS, range: [0.1, 0.8] };
   expect(parseHash(toHash(s))).toEqual(s);
+});
+
+test('custom periods: any whole number of years from 1 to 50', () => {
+  expect(parseHash('#period=7').period).toBe(7);
+  expect(parseHash('#period=50').period).toBe(50);
+  for (const bad of ['0', '51', '2.5', 'x', '-3']) expect(parseHash(`#period=${bad}`).period).toBe(10);
 });
