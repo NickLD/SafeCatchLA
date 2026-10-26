@@ -23,7 +23,8 @@
       <span class="bar" style:width="{(e.m.mean / max) * 100}%" style:background={scaleColor('avg', e.m.mean, colorRange)}></span>
       <span class="val">{formatPpm(e.m.mean)}</span>
       <span class="detail">
-        {e.m.n} {e.m.n === 1 ? 'sample' : 'samples'} made up of {e.m.fish} fish{#if e.m.fish === 1} <OneFish />{/if}
+        <!-- A lone fish gets the warning style on the line itself rather than a second tag. -->
+        {#if e.m.fish === 1}<OneFish text="1 sample made up of 1 fish" />{:else}{e.m.n} {e.m.n === 1 ? 'sample' : 'samples'} made up of {e.m.fish} fish{/if}
       </span>
     </li>
   {/each}

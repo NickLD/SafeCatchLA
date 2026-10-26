@@ -1,9 +1,9 @@
 <script>
   // Flags a number that rests on a single fish. One composite of several fish is fine; one fish can be far from typical.
-  let { where = '' } = $props();
+  let { where = '', text = '' } = $props();
 </script>
 
-<span class="one" title="Based on a single fish, which can be far from typical for this species and place.">⚠ 1 fish{where ? ` ${where}` : ''}</span>
+<span class="one" title="Based on a single fish, which can be far from typical for this species and place.">⚠ {text || `1 fish${where ? ` ${where}` : ''}`}</span>
 
 <style>
   .one {

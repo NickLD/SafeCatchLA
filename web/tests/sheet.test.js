@@ -174,7 +174,7 @@ test('single-sample results carry a 1-sample warning', () => {
   expect(within(summary).getAllByText('⚠ 1 fish').length).toBe(2); // avg and latest tiles
   expect(within(screen.getByRole('region', { name: 'Compare' })).getByText('⚠ 1 fish')).toBeTruthy();
   const rows = within(screen.getByRole('list', { name: 'All species here' })).getAllByRole('listitem');
-  expect(rows.find((r) => r.textContent.startsWith('Bowfin')).textContent).toContain('⚠ 1 fish');
+  expect(rows.find((r) => r.textContent.startsWith('Bowfin')).textContent).toContain('⚠ 1 sample made up of 1 fish');
   expect(rows.find((r) => r.textContent.startsWith('Largemouth')).textContent).not.toContain('⚠');
 });
 
