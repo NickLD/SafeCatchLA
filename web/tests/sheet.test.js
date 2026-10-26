@@ -170,10 +170,10 @@ test('single-sample results carry a 1-sample warning', () => {
   Object.assign(app, { sites: [one], latestYear: 2026, period: 'all', site: '0001', species: 'BOWFIN', compare: null });
   render(SiteSheet, { site: one, national: NATIONAL, latestYear: 2026, period: 'all' });
   const summary = screen.getByRole('region', { name: 'Summary' });
-  expect(within(summary).getAllByText('⚠ 1 sample').length).toBe(2); // avg and latest tiles
-  expect(within(screen.getByRole('region', { name: 'Compare' })).getByText('⚠ 1 sample')).toBeTruthy();
+  expect(within(summary).getAllByText('⚠ 1 fish').length).toBe(2); // avg and latest tiles
+  expect(within(screen.getByRole('region', { name: 'Compare' })).getByText('⚠ 1 fish')).toBeTruthy();
   const rows = within(screen.getByRole('list', { name: 'All species here' })).getAllByRole('listitem');
-  expect(rows.find((r) => r.textContent.startsWith('Bowfin')).textContent).toContain('⚠ 1 sample');
+  expect(rows.find((r) => r.textContent.startsWith('Bowfin')).textContent).toContain('⚠ 1 fish');
   expect(rows.find((r) => r.textContent.startsWith('Largemouth')).textContent).not.toContain('⚠');
 });
 
@@ -182,7 +182,7 @@ test('change tile warns when an end of the comparison is a single sample', async
   Object.assign(app, { sites: [site], latestYear: 2026, period: 'all', site: '0001', species: 'LARGEMOUTH BASS', compare: null });
   render(SiteSheet, { site, national: NATIONAL, latestYear: 2026, period: 'all' });
   const summary = screen.getByRole('region', { name: 'Summary' });
-  expect(within(summary).getByText('⚠ 1 sample at start')).toBeTruthy();
+  expect(within(summary).getByText('⚠ 1 fish at start')).toBeTruthy();
 });
 
 test('data source explains duplicate handling with the merge count', () => {
@@ -192,4 +192,12 @@ test('data source explains duplicate handling with the merge count', () => {
   expect(screen.getByText(/averaged into one sample/)).toBeTruthy();
   expect(screen.getByText(/26 results LDEQ marked as rejected/)).toBeTruthy();
   Object.assign(app, { meta: null });
+});
+
+test('one sample of many fish gets no single-fish warning', () => {
+  const comp = { ...SITE, n: 1, species: { BOWFIN: { n: 1, latest: ['2016-05-01', 0.5, 1, 10], years: { '2016': [0.5, 1, 10] } } } };
+  Object.assign(app, { sites: [comp], latestYear: 2026, period: 'all', site: '0001', species: 'BOWFIN', compare: null });
+  render(SiteSheet, { site: comp, national: NATIONAL, latestYear: 2026, period: 'all' });
+  expect(screen.queryByText(/⚠ 1 fish/)).toBeNull();
+  expect(within(screen.getByRole('region', { name: 'Summary' })).getByText(/1 sample \(10 fish\)/)).toBeTruthy();
 });

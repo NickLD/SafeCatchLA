@@ -1,7 +1,7 @@
 <script>
   import { formatPpm } from '../lib/format.js';
   import { changeOver, periodMean } from '../lib/stats.js';
-  import OneSample from './OneSample.svelte';
+  import OneFish from './OneFish.svelte';
 
   let { entry, period, latestYear } = $props();
   let avg = $derived(periodMean(entry.years, period, latestYear));
@@ -17,8 +17,8 @@
     {#if avg}
       <b>{formatPpm(avg.mean)}</b>
       <span>avg ppm</span>
-      <small>{avg.n} {avg.n === 1 ? 'sample' : 'samples'} · {periodText}</small>
-      {#if avg.n === 1}<OneSample />{/if}
+      <small>{avg.n} {avg.n === 1 ? 'sample' : 'samples'}{avg.fish !== avg.n ? ` (${avg.fish} fish)` : ''} · {periodText}</small>
+      {#if avg.fish === 1}<OneFish />{/if}
     {:else}
       <b>—</b>
       <span>avg ppm</span>
@@ -29,14 +29,14 @@
     <b>{formatPpm(entry.latest[1])}</b>
     <span>latest ppm</span>
     <small>{entry.latest[2] ?? 1} {(entry.latest[2] ?? 1) === 1 ? 'sample' : 'samples'} · {entry.latest[0].slice(0, 4)}</small>
-    {#if (entry.latest[2] ?? 1) === 1}<OneSample />{/if}
+    {#if (entry.latest[3] ?? entry.latest[2] ?? 1) === 1}<OneFish />{/if}
   </div>
   <div class="tile">
     {#if change}
       <b class:down={change.pct < 0} class:up={change.pct > 0}>{change.pct < 0 ? '↓' : change.pct > 0 ? '↑' : ''}{Math.abs(change.pct)}%</b>
       <small>{changeText}</small>
-      {#if change.earlyN === 1 || change.lateN === 1}
-        <OneSample where={change.earlyN === 1 && change.lateN === 1 ? 'at each end' : change.earlyN === 1 ? 'at start' : 'at end'} />
+      {#if change.earlyFish === 1 || change.lateFish === 1}
+        <OneFish where={change.earlyFish === 1 && change.lateFish === 1 ? 'at each end' : change.earlyFish === 1 ? 'at start' : 'at end'} />
       {/if}
     {:else}
       <b>—</b>

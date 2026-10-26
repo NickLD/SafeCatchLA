@@ -3,7 +3,7 @@
   import { displaySpecies, formatPpm } from '../lib/format.js';
   import { app, update } from '../lib/state.svelte.js';
   import { groupMean, periodMean, speciesYears } from '../lib/stats.js';
-  import OneSample from './OneSample.svelte';
+  import OneFish from './OneFish.svelte';
 
   let { site, national, period, latestYear, options, selected } = $props();
 
@@ -11,7 +11,7 @@
 
   let rows = $derived.by(() => {
     const own = periodMean(speciesYears(site, species), period, latestYear);
-    const out = [{ label: 'This site', value: own?.mean ?? null, note: own ? `${own.n} ${own.n === 1 ? 'sample' : 'samples'}` : 'no samples in period', own: true, one: own?.n === 1 }];
+    const out = [{ label: 'This site', value: own?.mean ?? null, note: own ? `${own.n} ${own.n === 1 ? 'sample' : 'samples'}` : 'no samples in period', own: true, one: own?.fish === 1 }];
     if (site.basin) {
       const b = groupMean(app.sites, species, period, latestYear, (s) => s.basin === site.basin);
       out.push({ label: `${BASINS[site.basin]} basin`, value: b?.mean ?? null, note: b ? `${b.nSites} sites` : 'no data' });
@@ -47,7 +47,7 @@
         <span class="val">
           {#if r.value !== null}<b>{formatPpm(r.value)}</b>{/if}
           <small>{r.note}</small>
-          {#if r.one}<OneSample />{/if}
+          {#if r.one}<OneFish />{/if}
         </span>
       </div>
     {/each}

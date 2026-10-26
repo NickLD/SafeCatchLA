@@ -7,24 +7,24 @@ const Y = { '1994': [1.4, 2], '2000': [0.6, 2], '2016': [0.3, 1] };
 
 test('periodMean', () => {
   expect(periodMean(Y, 10, 2026)).toBeNull();
-  expect(periodMean(Y, 20, 2026)).toEqual({ mean: 0.3, n: 1 });
+  expect(periodMean(Y, 20, 2026)).toMatchObject({ mean: 0.3, n: 1 });
   const all = periodMean(Y, 'all', 2026);
   expect(all.mean).toBeCloseTo(0.46);
   expect(all.n).toBe(5);
 });
 
 test('periodMean includes the boundary year', () => {
-  expect(periodMean({ '2017': [0.5, 1] }, 10, 2026)).toEqual({ mean: 0.5, n: 1 });
+  expect(periodMean({ '2017': [0.5, 1] }, 10, 2026)).toMatchObject({ mean: 0.5, n: 1 });
   expect(periodMean({ '2016': [0.5, 1] }, 10, 2026)).toBeNull();
 });
 
 test('periodMean single sample', () => {
-  expect(periodMean({ '2020': [0, 1] }, 10, 2026)).toEqual({ mean: 0, n: 1 });
+  expect(periodMean({ '2020': [0, 1] }, 10, 2026)).toMatchObject({ mean: 0, n: 1 });
 });
 
 test('yearlyMeans sorted by year', () => {
   expect(yearlyMeans({ '2000': [0.6, 2], '1994': [1.4, 2] })).toEqual([
-    { year: 1994, mean: 0.7, n: 2 }, { year: 2000, mean: 0.3, n: 2 },
+    { year: 1994, mean: 0.7, n: 2, fish: 2 }, { year: 2000, mean: 0.3, n: 2, fish: 2 },
   ]);
 });
 
@@ -52,13 +52,13 @@ test('groupMean skips sites without period data', () => {
 
 test('mixedYears pools species', () => {
   expect(mixedYears({ species: { A: { years: { '2020': [1, 2] } }, B: { years: { '2020': [0.5, 1] } } } }))
-    .toEqual({ '2020': [1.5, 3] });
+    .toEqual({ '2020': [1.5, 3, 3] });
 });
 
 test('speciesYears', () => {
   const site = { species: { A: { years: { '2020': [1, 2] } } } };
   expect(speciesYears(site, 'A')).toEqual({ '2020': [1, 2] });
-  expect(speciesYears(site, 'ALL')).toEqual({ '2020': [1, 2] });
+  expect(speciesYears(site, 'ALL')).toEqual({ '2020': [1, 2, 2] });
   expect(speciesYears(site, 'Z')).toBeNull();
 });
 
@@ -103,8 +103,18 @@ test('changeOver reports how many samples each end rests on', () => {
 
 test('speciesYears pools a list of species, and treats an empty list as all', () => {
   const site = { species: { A: { years: { '2020': [1, 2] } }, B: { years: { '2020': [0.5, 1] } }, C: { years: { '2021': [3, 1] } } } };
-  expect(speciesYears(site, ['A', 'B'])).toEqual({ '2020': [1.5, 3] });
-  expect(speciesYears(site, ['A'])).toEqual({ '2020': [1, 2] });
-  expect(speciesYears(site, [])).toEqual({ '2020': [1.5, 3], '2021': [3, 1] });
+  expect(speciesYears(site, ['A', 'B'])).toEqual({ '2020': [1.5, 3, 3] });
+  expect(speciesYears(site, ['A'])).toEqual({ '2020': [1, 2, 2] });
+  expect(speciesYears(site, [])).toEqual({ '2020': [1.5, 3, 3], '2021': [3, 1, 1] });
   expect(speciesYears(site, ['Z'])).toBeNull();
+});
+
+test('periodMean counts fish (composites count every fish; old two-number years count one per sample)', () => {
+  expect(periodMean({ '2020': [0.5, 1, 10], '2021': [0.3, 1, 1] }, 'all', 2026)).toEqual({ mean: 0.4, n: 2, fish: 11 });
+  expect(periodMean({ '2020': [0.5, 1] }, 'all', 2026).fish).toBe(1);
+});
+
+test('changeOver reports fish at each end', () => {
+  const c = changeOver({ '1997': [0.87, 3, 7], '2001': [0.46, 2, 2], '2005': [0.72, 2, 2], '2025': [0.102, 1, 1] }, 'all', 2026, 'period');
+  expect([c.earlyFish, c.lateFish]).toEqual([7, 1]);
 });

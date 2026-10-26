@@ -29,8 +29,9 @@ def test_sites_json(tmp_path):
     assert (s1["id"], s1["basin"], s1["address"], s1["n"], s1["last"]) == ("0001", "05", "2.1 miles south of Abbeville", 3, "2016-05-01")
     assert (s1["name"], s1["lat"], s1["lon"]) == ("Vermilion River North of Perry", 29.95, -92.15)
     bass = s1["species"]["LARGEMOUTH BASS"]
-    assert bass["years"] == {"2010": [1.0, 2], "2016": [0.001, 1]}  # 2 of 3 detects -> half RL
-    assert bass["latest"] == ["2016-05-01", 0.001, 1]
+    # [sum, samples, fish]: each fixture row is a 5-fish composite; 2 of 3 detects -> half RL
+    assert bass["years"] == {"2010": [1.0, 2, 10], "2016": [0.001, 1, 5]}
+    assert bass["latest"] == ["2016-05-01", 0.001, 1, 5]
     assert bass["n"] == 3
     assert d["sites"][1]["address"] == ""
     assert d["sites"][1]["basin"] is None
@@ -88,7 +89,7 @@ def test_build_merges_field_duplicates(tmp_path):
             site1(RESULT=2.22, SAMPLE_NUMBER="1-D", LAB_SAMPLE_TYPE="FD")]
     build(rows, SITE_ROWS, tmp_path, date(2026, 10, 24))
     bass = json.loads((tmp_path / "sites.json").read_text())["sites"][0]["species"]["LARGEMOUTH BASS"]
-    assert (bass["n"], bass["years"]) == (1, {"2010": [2.265, 1]})
+    assert (bass["n"], bass["years"]) == (1, {"2010": [2.265, 1, 5]})
     m = json.loads((tmp_path / "meta.json").read_text())
     assert m["mergedDuplicates"] == 1
 
@@ -105,3 +106,11 @@ def test_status_records_last_pull_without_touching_meta(tmp_path):
 def test_no_status_without_checked_at(tmp_path):
     build(ROWS, SITE_ROWS, tmp_path, date(2026, 10, 24))
     assert not (tmp_path / "status.json").exists()
+
+
+def test_fish_counts_single_fish_and_missing_counts_as_one(tmp_path):
+    rows = [site1(NUMBEROFFISH="Single Fish", NUMBER_OF_FISH=1.0, COLLECTION_DATE="2012-01-01T00:00:00"),
+            site1(NUMBEROFFISH="N/a", NUMBER_OF_FISH=None, COLLECTION_DATE="2012-02-01T00:00:00")]
+    build(rows, SITE_ROWS, tmp_path, date(2026, 10, 24))
+    bass = json.loads((tmp_path / "sites.json").read_text())["sites"][0]["species"]["LARGEMOUTH BASS"]
+    assert bass["years"]["2012"][1:] == [2, 2]

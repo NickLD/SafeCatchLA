@@ -13,18 +13,21 @@ export function periodMean(years, period, latestYear) {
   const start = periodStartYear(period, latestYear);
   let sum = 0;
   let n = 0;
-  for (const [y, [s, c]] of Object.entries(years)) {
+  let fish = 0;
+  // Years are [sum, samples, fish]; data without a fish count counts one fish per sample.
+  for (const [y, [s, c, f = c]] of Object.entries(years)) {
     if (Number(y) >= start) {
       sum += s;
       n += c;
+      fish += f;
     }
   }
-  return n ? { mean: sum / n, n } : null;
+  return n ? { mean: sum / n, n, fish } : null;
 }
 
 export function yearlyMeans(years) {
   return Object.entries(years ?? {})
-    .map(([y, [s, c]]) => ({ year: Number(y), mean: s / c, n: c }))
+    .map(([y, [s, c, f = c]]) => ({ year: Number(y), mean: s / c, n: c, fish: f }))
     .sort((a, b) => a.year - b.year);
 }
 
@@ -80,6 +83,8 @@ export function changeOver(years, period, latestYear, basis) {
     late: [latePts[0].year, latePts.at(-1).year],
     earlyN: earlyPts.reduce((a, p) => a + p.n, 0),
     lateN: latePts.reduce((a, p) => a + p.n, 0),
+    earlyFish: earlyPts.reduce((a, p) => a + p.fish, 0),
+    lateFish: latePts.reduce((a, p) => a + p.fish, 0),
   };
 }
 
@@ -94,10 +99,11 @@ export function speciesWithData(site, period, latestYear) {
 export function mixedYears(site) {
   const out = {};
   for (const sp of Object.values(site.species)) {
-    for (const [y, [s, c]] of Object.entries(sp.years)) {
-      const t = (out[y] ??= [0, 0]);
+    for (const [y, [s, c, f = c]] of Object.entries(sp.years)) {
+      const t = (out[y] ??= [0, 0, 0]);
       t[0] += s;
       t[1] += c;
+      t[2] += f;
     }
   }
   return out;

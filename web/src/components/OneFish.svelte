@@ -1,9 +1,9 @@
 <script>
-  // Flags a number that rests on a single sample (one fish, or one composite), which can be far from typical.
+  // Flags a number that rests on a single fish. One composite of several fish is fine; one fish can be far from typical.
   let { where = '' } = $props();
 </script>
 
-<span class="one" title="Based on a single sample. One fish (or one composite) can be far from typical.">⚠ 1 sample{where ? ` ${where}` : ''}</span>
+<span class="one" title="Based on a single fish, which can be far from typical for this species and place.">⚠ 1 fish{where ? ` ${where}` : ''}</span>
 
 <style>
   .one {

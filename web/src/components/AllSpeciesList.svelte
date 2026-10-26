@@ -4,7 +4,7 @@
   import { EPA_GUIDELINE_PPM } from '../lib/config.js';
   import { displaySpecies, formatPpm } from '../lib/format.js';
   import { periodMean } from '../lib/stats.js';
-  import OneSample from './OneSample.svelte';
+  import OneFish from './OneFish.svelte';
 
   let { site, period, latestYear } = $props();
 
@@ -21,7 +21,7 @@
     <li>
       <span class="name">{displaySpecies(e.name)}</span>
       <span class="bar" style:width="{(e.m.mean / max) * 100}%" style:background={scaleColor('avg', e.m.mean, colorRange)}></span>
-      <span class="val">{formatPpm(e.m.mean)} ({e.m.n}){#if e.m.n === 1}<br /><OneSample />{/if}</span>
+      <span class="val">{formatPpm(e.m.mean)} ({e.m.n}){#if e.m.fish === 1}<br /><OneFish />{/if}</span>
     </li>
   {/each}
 </ul>

@@ -74,13 +74,15 @@ def build(mercury_rows, site_rows, out_dir, today, checked_at=None):
     for (site_id, species), group in sorted(groups.items()):
         group.sort(key=lambda s: s.date)
         values = substitute_nondetects(group)
-        years = defaultdict(lambda: [0.0, 0])
+        years = defaultdict(lambda: [0.0, 0, 0])  # [sum of values, samples, fish]
         for s, v in zip(group, values):
             y = years[str(s.date.year)]
             y[0] += v
             y[1] += 1
+            y[2] += s.n_fish or 1  # a composite counts all its fish; unknown counts as one
         last_date = group[-1].date
         latest = [v for s, v in zip(group, values) if s.date == last_date]
+        latest_fish = sum(s.n_fish or 1 for s in group if s.date == last_date)
         r = info[site_id]
         site = sites.setdefault(site_id, {
             "id": site_id,
@@ -97,8 +99,8 @@ def build(mercury_rows, site_rows, out_dir, today, checked_at=None):
         site["last"] = max(site["last"], last_date.isoformat())
         site["species"][species] = {
             "n": len(group),
-            "latest": [last_date.isoformat(), _r(sum(latest) / len(latest)), len(latest)],
-            "years": {y: [_r(t), c] for y, (t, c) in years.items()},
+            "latest": [last_date.isoformat(), _r(sum(latest) / len(latest)), len(latest), latest_fish],
+            "years": {y: [_r(t), c, fish] for y, (t, c, fish) in years.items()},
         }
         details.setdefault(site_id, {"id": site_id, "species": {}})["species"][species] = [
             {"date": s.date.isoformat(), "value": _r(v), "nd": s.is_nd, "weightG": s.weight_g,
