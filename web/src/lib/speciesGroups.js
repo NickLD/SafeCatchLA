@@ -8,7 +8,7 @@ export const GROUPS = [
   { id: 'catfish', label: 'Catfish', members: ['BLUE CATFISH', 'CHANNEL CATFISH', 'FLATHEAD CATFISH', 'YELLOW BULLHEAD', 'BLACK BULLHEAD', 'BROWN BULLHEAD', 'BULLHEADS', 'GAFFTOPSAIL CATFISH'] },
   { id: 'sunfish', label: 'Sunfish (bream)', members: ['BLUEGILL', 'REDEAR SUNFISH', 'WARMOUTH', 'LONGEAR SUNFISH', 'GREEN SUNFISH'] },
   { id: 'drum', label: 'Drum', members: ['FRESHWATER DRUM', 'RED DRUM', 'BLACK DRUM', 'FINEBARBEL CROAKERS'] },
-  { id: 'gar-bowfin', label: 'Gar & bowfin', members: ['BOWFIN', 'BOWFIN EGGS', 'SPOTTED GAR', 'ALLIGATOR GAR', 'LONGNOSE GAR', 'SHORTNOSE GAR'] },
+  { id: 'gar-bowfin', label: 'Gar & bowfin', members: ['BOWFIN', 'SPOTTED GAR', 'ALLIGATOR GAR', 'LONGNOSE GAR', 'SHORTNOSE GAR'] },
   { id: 'buffalo-carp', label: 'Buffalo, carp & suckers', members: ['BIGMOUTH BUFFALO', 'SMALLMOUTH BUFFALO', 'BLACK BUFFALO', 'COMMON CARP', 'SILVER CARP', 'GRASS CARP', 'BLACKTAIL REDHORSE', 'BLUE SUCKER', 'SPOTTED SUCKER'] },
   { id: 'inshore', label: 'Inshore saltwater', members: ['SHEEPSHEAD', 'SPOTTED SEATROUT', 'SAND SEATROUT', 'SOUTHERN FLOUNDER', 'GULF FLOUNDER', 'STRIPED MULLET', 'ATLANTIC TRIPLETAIL'] },
   { id: 'offshore', label: 'Offshore saltwater', members: ['KING MACKEREL', 'SPANISH MACKEREL', 'RED SNAPPER', 'GRAY SNAPPER', 'LANE SNAPPER', 'COBIA', 'GREATER AMBERJACK', 'DOLPHINFISH', 'BLACKFIN TUNA', 'YELLOWFIN TUNA', 'LITTLE TUNNY', 'WARSAW GROUPER', 'YELLOWEDGE GROUPER', 'SCAMP', 'GAG', 'CREVALLE JACK', 'GRAY TRIGGERFISH', 'FLORIDA POMPANO', 'WAHOO', 'SWORDFISH'] },

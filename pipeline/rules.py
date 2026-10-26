@@ -11,6 +11,8 @@ PPM_UNITS = {"ppm", "ug/g", "mg/kg"}
 VALID_BASINS = {f"{n:02d}" for n in range(1, 13)}
 # The app is about fish; these tissue samples are shellfish.
 SHELLFISH = {"BLUE CRAB", "EASTERN OYSTER", "WHITE SHRIMP", "RED SWAMP CRAWFISH", "CRAWFISH FAT"}
+# Fish roe is a different tissue from the fillet samples the app compares.
+ROE = {"BOWFIN EGGS"}
 
 
 @dataclass(frozen=True)
@@ -51,6 +53,9 @@ def parse_samples(rows):
             continue
         if r["TAXA_COMMON_NAME"] in SHELLFISH:
             skipped["shellfish"] += 1
+            continue
+        if r["TAXA_COMMON_NAME"] in ROE:
+            skipped["roe"] += 1
             continue
         if (r.get("UNITS") or "").lower() not in PPM_UNITS:
             skipped["unit"] += 1

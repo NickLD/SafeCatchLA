@@ -22,7 +22,7 @@
     {#if meta?.mergedDuplicates}{count(meta.mergedDuplicates)} lab field duplicates{:else}These field duplicates{/if}
     are averaged into one sample with their original, so each fish counts once.
     {#if meta?.skipped?.rejected}We leave out {count(meta.skipped.rejected)} results LDEQ marked as rejected{:else}We leave out results LDEQ marked as rejected{/if}
-    and shellfish samples, and treat "not detected" results as Louisiana's advisory protocol does (zero, or half the
+    and shellfish and fish-roe samples, and treat "not detected" results as Louisiana's advisory protocol does (zero, or half the
     reporting limit when most samples at a site are detected).
   </p>
   <p>

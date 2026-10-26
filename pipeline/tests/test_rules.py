@@ -89,8 +89,13 @@ def test_basin_code():
 
 def test_excludes_shellfish():
     rows = [row(TAXA_COMMON_NAME=t) for t in ("BLUE CRAB", "EASTERN OYSTER", "WHITE SHRIMP", "RED SWAMP CRAWFISH", "CRAWFISH FAT")]
-    s, skipped = parse_samples(rows + [row(TAXA_COMMON_NAME="BOWFIN EGGS")])
-    assert [x.species for x in s] == ["BOWFIN EGGS"] and skipped["shellfish"] == 5
+    s, skipped = parse_samples(rows + [row(TAXA_COMMON_NAME="BOWFIN")])
+    assert [x.species for x in s] == ["BOWFIN"] and skipped["shellfish"] == 5
+
+
+def test_excludes_roe():
+    s, skipped = parse_samples([row(TAXA_COMMON_NAME="BOWFIN EGGS")])
+    assert s == [] and skipped["roe"] == 1
 
 
 def test_parses_field_duplicate_flag():
