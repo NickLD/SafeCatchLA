@@ -1,12 +1,14 @@
-# SafeCatchLA sticker
+# SafeCatchLA stickers
 
-4 × 3 in landscape sticker for posting at boat launches and fishing spots.
+Two designs for boat launches, piers and tackle boxes. Both point to https://safecatchla.com (QR codes checked to decode)
+and use a general message ("What's in the water here?") that fits fish mercury now and water-quality data later.
 
-| File | Use |
-|---|---|
-| `safecatchla-sticker-4x3.pdf` | Upload to the printer (vector, fonts embedded, 4 × 3 in) |
-| `safecatchla-sticker-4x3.png` | 2400 × 1800 px (600 dpi) with transparent corners, for printers that want an image |
-| `safecatchla-sticker-4x3.svg` | Editable source (uses the Montserrat font) |
+| Design | Size | Print file | Notes |
+|---|---|---|---|
+| Sunset rectangle | 4 × 3 in | `safecatchla-sticker-4x3.pdf` | Order as a rounded-corner rectangle |
+| Die-cut fish | 4 × 2.12 in | `safecatchla-sticker-diecut-fish.pdf` | Order as die-cut; the background is transparent and the white outline is the cut border |
 
-The QR code points to https://safecatchla.com and has been checked to decode. Order as a rounded-corner rectangle
-(or die-cut to the artwork) in outdoor vinyl with a UV laminate so it survives sun and spray.
+Each design also has a 600 dpi PNG with a transparent background (for printers that want an image) and an editable SVG.
+Use outdoor vinyl with a UV laminate so stickers survive sun and spray.
+
+To change the artwork, edit `build_stickers.py` and re-run it with the QR path data; it regenerates both SVGs.
