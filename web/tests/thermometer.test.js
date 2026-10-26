@@ -7,7 +7,7 @@ beforeEach(() => Object.assign(app, { color: 'avg', range: null }));
 
 test('mercury thermometer shows the EPA marker and default range', () => {
   render(Thermometer);
-  expect(screen.getByText('EPA 0.3')).toBeTruthy();
+  expect(screen.getByText('EPA Guideline 0.3')).toBeTruthy();
   expect(screen.getByText('1.0+')).toBeTruthy();
   expect(screen.getByLabelText('Deepest blue at').value).toBe('0');
   expect(screen.getByLabelText('Deepest red at').value).toBe('1');
@@ -22,7 +22,7 @@ test('dragging a handle sets the range', async () => {
 test('age thermometer has no EPA marker', () => {
   app.color = 'age';
   render(Thermometer);
-  expect(screen.queryByText('EPA 0.3')).toBeNull();
+  expect(screen.queryByText('EPA Guideline 0.3')).toBeNull();
   expect(screen.getByText('30+ yrs ago')).toBeTruthy();
 });
 
@@ -32,4 +32,21 @@ test('trend thermometer marks no change and labels the ends', () => {
   expect(screen.getByText('No change')).toBeTruthy();
   expect(screen.getByText('−50% improving')).toBeTruthy();
   expect(screen.getByText('+50% worsening')).toBeTruthy();
+});
+
+test('a selected site gets a bubble with its value on the bar', () => {
+  const site = {
+    id: 'X1', name: 'Test', species: { BASS: { n: 2, latest: ['2020-01-01', 0.5], years: { 2020: [1.0, 2] } } },
+  };
+  Object.assign(app, { sites: [site], site: 'X1', filter: [], period: 'all', latestYear: 2020 });
+  render(Thermometer);
+  expect(screen.getByText('Avg 0.50 ppm · 2020')).toBeTruthy();
+  expect(screen.getByText('Latest 0.50 ppm · Jan 1, 2020')).toBeTruthy();
+  Object.assign(app, { sites: [], site: null });
+});
+
+test('no bubble without a selected site', () => {
+  Object.assign(app, { site: null });
+  render(Thermometer);
+  expect(screen.queryByText(/ppm$/)).toBeNull();
 });

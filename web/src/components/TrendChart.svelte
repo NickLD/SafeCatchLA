@@ -133,7 +133,7 @@
     </svg>
   </div>
   <div class="key">
-    <span><i class="k-epa"></i>EPA guideline (0.3 ppm)</span>
+    <span><i class="k-epa"></i>EPA guideline (0.3 ppm)<small class="note">· a general guideline, not a safety limit</small></span>
     {#if stateAvg !== null}<span><i class="k-state"></i>Louisiana avg {formatPpm(stateAvg)}</span>{/if}
     {#if classed.some((s) => !s.cls)}<span><i class="k-dot"></i>Size not recorded</span>{/if}
   </div>
@@ -171,6 +171,7 @@
   .key span { display: inline-flex; align-items: center; gap: 4px; }
   .key i { display: inline-block; width: 16px; height: 0; }
   .k-epa { border-top: 2px dashed #d7191c; }
+  .note { font-size: 10px; font-style: italic; opacity: 0.85; }
   .k-state { border-top: 2px dotted var(--muted); }
   .key .k-dot { width: 8px; height: 8px; border-radius: 50%; background: #9e9e9e; }
   .state { stroke: var(--muted); stroke-dasharray: 2 2; }

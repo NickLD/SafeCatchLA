@@ -23,7 +23,7 @@ const RISING = ['#d9d9d9', '#ef8a62', '#b2182b'];
 const BLUES_DARK_TO_LIGHT = ['#08306b', '#2171b5', '#6baed6', '#c6dbef'];
 
 const MERCURY_SCALE = {
-  kind: 'diverging', center: EPA_GUIDELINE_PPM, centerLabel: 'EPA 0.3', below: BELOW, above: ABOVE, range: [0, 1], minBounds: [0, 0.29], maxBounds: [0.31, 3], step: 0.01,
+  kind: 'diverging', center: EPA_GUIDELINE_PPM, centerLabel: 'EPA Guideline 0.3', below: BELOW, above: ABOVE, range: [0, 1], minBounds: [0, 0.29], maxBounds: [0.31, 3], step: 0.01,
   handles: ['Deepest blue at', 'Deepest red at'], unit: 'ppm',
 };
 // Continuous scales; the range is where the end colors are reached (values beyond clamp).
@@ -94,6 +94,12 @@ function latestOf(entries) {
   const date = entries.reduce((d, e) => (e.latest[0] > d ? e.latest[0] : d), '');
   const vals = entries.filter((e) => e.latest[0] === date).map((e) => e.latest[1]);
   return [date, vals.reduce((a, b) => a + b, 0) / vals.length];
+}
+
+// The most recent sample (date, ppm) for the species in view, pooled when several share that date.
+export function latestReading(site, species) {
+  const entries = speciesEntries(site, species);
+  return entries.length ? latestOf(entries) : null;
 }
 
 function siteValue(site, entries, { mode, species, period, latestYear, today }) {

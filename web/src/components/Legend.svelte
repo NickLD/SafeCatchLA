@@ -21,6 +21,7 @@
     {CONTAMINANTS[0].label} in fish tissue · {selection}{pooled ? ' (mixed)' : ''}
   </div>
   <Thermometer />
+  {#if app.color === 'avg'}<div class="note">EPA {EPA_GUIDELINE_PPM} ppm is a general guideline, not a safety limit.</div>{/if}
   <div class="nodata"><span class="dot hollow"></span>{app.color === 'trend' ? 'Too few years to tell' : 'No recent data'}</div>
   {#if open}
     <p>
@@ -57,6 +58,7 @@
   .head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
   .head button { border: 0; background: none; font-size: 18px; min-width: 32px; min-height: 32px; cursor: pointer; color: var(--text); }
   .sub { color: var(--muted); }
+  .note { color: var(--muted); font-size: 10px; font-style: italic; }
   .dot { display: inline-block; width: 12px; min-width: 12px; height: 12px; border-radius: 50%; border: 1px solid rgba(0, 0, 0, 0.25); flex-shrink: 0; }
   p { margin: 6px 0 0; }
   .nodata { display: flex; align-items: center; gap: 6px; margin-top: 2px; }

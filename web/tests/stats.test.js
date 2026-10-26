@@ -110,7 +110,7 @@ test('speciesYears pools a list of species, and treats an empty list as all', ()
 });
 
 test('periodMean counts fish (composites count every fish; old two-number years count one per sample)', () => {
-  expect(periodMean({ '2020': [0.5, 1, 10], '2021': [0.3, 1, 1] }, 'all', 2026)).toEqual({ mean: 0.4, n: 2, fish: 11 });
+  expect(periodMean({ '2020': [0.5, 1, 10], '2021': [0.3, 1, 1] }, 'all', 2026)).toEqual({ mean: 0.4, n: 2, fish: 11, first: 2020, last: 2021 });
   expect(periodMean({ '2020': [0.5, 1] }, 'all', 2026).fish).toBe(1);
 });
 

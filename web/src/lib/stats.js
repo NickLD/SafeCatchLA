@@ -14,15 +14,19 @@ export function periodMean(years, period, latestYear) {
   let sum = 0;
   let n = 0;
   let fish = 0;
+  let first = Infinity;
+  let last = -Infinity;
   // Years are [sum, samples, fish]; data without a fish count counts one fish per sample.
   for (const [y, [s, c, f = c]] of Object.entries(years)) {
     if (Number(y) >= start) {
       sum += s;
       n += c;
       fish += f;
+      first = Math.min(first, Number(y));
+      last = Math.max(last, Number(y));
     }
   }
-  return n ? { mean: sum / n, n, fish } : null;
+  return n ? { mean: sum / n, n, fish, first, last } : null;
 }
 
 export function yearlyMeans(years) {
