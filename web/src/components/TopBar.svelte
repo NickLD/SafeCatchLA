@@ -31,10 +31,14 @@
   // "Specify…" asks for a custom number of years; the select snaps back to the current period meanwhile.
   let customOpen = $state(false);
   let customYears = $state('');
+  let customPos = $state({ left: 8, top: 112 }); // placed under the Period pill when opened
+  const CUSTOM_WIDTH = 260;
   function onPeriod(e) {
     const v = e.currentTarget.value;
     if (v === 'custom') {
       e.currentTarget.value = String(app.period);
+      const r = e.currentTarget.getBoundingClientRect();
+      customPos = { left: Math.max(8, Math.min(r.left, innerWidth - CUSTOM_WIDTH - 8)), top: r.bottom + 6 };
       customYears = typeof app.period === 'number' ? String(app.period) : '';
       customOpen = true;
     } else {
@@ -90,7 +94,7 @@
 </div>
 
 {#if customOpen}
-  <div class="custom" role="dialog" aria-label="Custom period">
+  <div class="custom" role="dialog" aria-label="Custom period" style:left="{customPos.left}px" style:top="{customPos.top}px">
     <label>
       Last
       <input type="number" inputmode="numeric" min="1" max={MAX_CUSTOM_YEARS} aria-label="Number of years"
@@ -137,7 +141,7 @@
   li:hover, li:focus { background: var(--hover); outline: none; }
   small { color: var(--muted); }
   .custom {
-    position: fixed; z-index: 1400; top: 112px; right: 8px; width: min(260px, calc(100vw - 16px));
+    position: fixed; z-index: 1400; width: min(260px, calc(100vw - 16px));
     background: var(--surface); color: var(--text); border-radius: 12px; box-shadow: var(--shadow); padding: 12px;
   }
   .custom label { display: flex; align-items: center; gap: 8px; font-size: 15px; }

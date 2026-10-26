@@ -53,6 +53,17 @@ test('tapping the map closes the sheet', async ({ page }) => {
 test.describe('desktop', () => {
   test.use({ viewport: { width: 1280, height: 800 }, isMobile: false, hasTouch: false });
 
+  test('custom period box opens under the Period pill', async ({ page }) => {
+    await page.goto('/');
+    const pill = page.getByLabel('Period', { exact: true });
+    await pill.selectOption('custom');
+    const box = await page.getByRole('dialog', { name: 'Custom period' }).boundingBox();
+    const p = await pill.boundingBox();
+    expect(Math.abs(box.x - p.x)).toBeLessThan(40);
+    expect(box.y).toBeGreaterThanOrEqual(p.y + p.height);
+    expect(box.y).toBeLessThan(p.y + p.height + 24);
+  });
+
   test('filter pills use the space up to the drawer and only fade when they overflow', async ({ page }) => {
     await page.goto('/#site=0436');
     await expect(page.getByRole('heading', { name: /Lake Henderson/ })).toBeVisible();
