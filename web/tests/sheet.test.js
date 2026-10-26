@@ -50,7 +50,9 @@ test('CompareBars shows no national data', async () => {
   expect(within(compare).getByText('Mermentau basin')).toBeTruthy();
   expect(within(compare).queryByText('no national data')).toBeNull();
   await fireEvent.change(within(compare).getByLabelText('Compare species'), { target: { value: 'BOWFIN' } });
-  expect(within(compare).getByText('no national data')).toBeTruthy();
+  // No EPA national figure for bowfin: the row is left out rather than shown empty.
+  expect(within(compare).queryByText('U.S. lakes (EPA 2022)')).toBeNull();
+  expect(within(compare).queryByText('no national data')).toBeNull();
 });
 
 test('expand button toggles state', async () => {

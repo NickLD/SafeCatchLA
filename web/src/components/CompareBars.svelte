@@ -19,11 +19,8 @@
     const st = groupMean(app.sites, species, period, latestYear);
     out.push({ label: 'Louisiana', value: st?.mean ?? null, note: st ? `${st.nSites} sites` : 'no data' });
     const nat = species === ALL_SPECIES ? national?.all : national?.species?.[species];
-    out.push({
-      label: 'U.S. lakes (EPA 2022)',
-      value: nat && nat.n >= NATIONAL_MIN_N ? nat.mean : null,
-      note: nat && nat.n >= NATIONAL_MIN_N ? `${nat.n} samples` : 'no national data',
-    });
+    // EPA only sampled a handful of species nationally; leave the row out when it has nothing for this one.
+    if (nat && nat.n >= NATIONAL_MIN_N) out.push({ label: 'U.S. lakes (EPA 2022)', value: nat.mean, note: `${nat.n} samples` });
     return out;
   });
   let max = $derived(Math.max(EPA_GUIDELINE_PPM * 1.2, ...rows.map((r) => r.value ?? 0)) * 1.1);
@@ -55,7 +52,9 @@
       </div>
     {/each}
   </div>
-  <p class="foot">Dashed line: EPA guideline (0.3 ppm). U.S. figure is a simple average of EPA's 2022 lake samples.</p>
+  <p class="foot">
+    Dashed line: EPA guideline (0.3 ppm).{#if rows.some((r) => r.label.startsWith('U.S.'))} U.S. figure is a simple average of EPA's 2022 lake samples.{/if}
+  </p>
 </section>
 
 <style>
