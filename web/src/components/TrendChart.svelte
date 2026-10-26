@@ -213,7 +213,7 @@
     return () => ro.disconnect();
   });
 
-  // Wheel listeners must be non-passive to stop the page scrolling while zooming.
+  // Wheel and touchmove listeners must be non-passive so they can stop the browser's own scrolling.
   $effect(() => {
     if (!svgEl) return;
     const onWheel = (e) => {
@@ -221,8 +221,15 @@
       e.preventDefault();
       zoomAt(toYear(e.clientX), e.deltaY < 0 ? 1.25 : 0.8);
     };
+    // Touch drags on the chart are ours: without this the browser still treats them as page scrolls
+    // (iOS ignores touch-action on SVG, and Chrome swallows the next tap to stop the "scroll").
+    const onTouchMove = (e) => full && e.preventDefault();
     svgEl.addEventListener('wheel', onWheel, { passive: false });
-    return () => svgEl.removeEventListener('wheel', onWheel);
+    svgEl.addEventListener('touchmove', onTouchMove, { passive: false });
+    return () => {
+      svgEl.removeEventListener('wheel', onWheel);
+      svgEl.removeEventListener('touchmove', onTouchMove);
+    };
   });
 </script>
 

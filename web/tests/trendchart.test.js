@@ -139,3 +139,16 @@ test('the chart enlarges to full screen with its title, zooms in time, and Escap
   expect(screen.queryByRole('dialog')).toBeNull();
   expect(screen.getByRole('status').textContent).toContain('Sep 1, 1994'); // selection kept after closing
 });
+
+test('in full screen, touch drags on the chart are not left to the browser to scroll', async () => {
+  render(TrendChart, { years: YEARS, samples: SAMPLES, cuts: CUTS });
+  const svg = () => document.querySelector('svg[aria-label="Mercury over time, by sample"]');
+  const move = () => {
+    const e = new Event('touchmove', { bubbles: true, cancelable: true });
+    svg().dispatchEvent(e);
+    return e.defaultPrevented;
+  };
+  expect(move()).toBe(false); // inline chart: the drawer still scrolls normally
+  await fireEvent.click(screen.getByRole('button', { name: 'Enlarge chart' }));
+  expect(move()).toBe(true);
+});
