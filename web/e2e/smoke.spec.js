@@ -37,7 +37,7 @@ test('stale species and filter in a link are replaced', async ({ page }) => {
   const compare = page.getByRole('region', { name: 'Compare' });
   await expect(compare.getByText('Louisiana')).toBeVisible();
   await expect(compare.getByText('no samples in period')).toHaveCount(0);
-  await expect(page.getByLabel('Species', { exact: true }).first()).toHaveValue('ALL');
+  await expect(page.getByRole('button', { name: 'Species: All species' })).toBeVisible();
 });
 
 test('tapping the map closes the sheet', async ({ page }) => {
@@ -90,4 +90,14 @@ test('swipe hint expands the drawer and is not shown again', async ({ page }) =>
   await page.reload();
   await expect(page.getByRole('heading', { name: /Lake Henderson/ })).toBeVisible();
   await expect(page.getByRole('button', { name: /Swipe up for full history/ })).toHaveCount(0);
+});
+
+test('species picker opens above the map and selecting a group filters the map', async ({ page }) => {
+  await page.goto('/#period=all');
+  await page.getByRole('button', { name: 'Species: All species' }).click();
+  await page.getByRole('checkbox', { name: 'Bass', exact: true }).click(); // fails if the panel is hidden under the map
+  await expect(page.getByRole('button', { name: /^Species: Bass \(\d+\)$/ })).toBeVisible();
+  await expect(page).toHaveURL(/filter=LARGEMOUTH%20BASS/);
+  await page.getByRole('button', { name: 'Done' }).click();
+  await expect(page.getByRole('dialog', { name: 'Choose species' })).toHaveCount(0);
 });

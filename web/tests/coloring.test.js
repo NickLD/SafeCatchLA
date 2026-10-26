@@ -91,3 +91,10 @@ test('gradientStops puts the guideline at its position in the bar', () => {
   expect(stops.find((s) => s.color === '#ffffbf').offset).toBeCloseTo(0.3);
   expect(stops.at(-1)).toEqual({ offset: 1, color: '#a50026' });
 });
+
+test('colorSite with a list of species pools only those', () => {
+  const two = { last: '2024-01-01', species: { ...site.species, C: { n: 60, latest: ['2024-01-01', 0.1, 1], years: { '2024': [6, 60] } } } };
+  expect(colorSite(two, { ...ctx, species: ['C'], mode: 'avg' }).value).toBeCloseTo(0.1, 3);
+  expect(colorSite(two, { ...ctx, species: ['B', 'C'], mode: 'avg' }).value).toBeCloseTo(0.1224, 3);
+  expect(colorSite(two, { ...ctx, species: ['NOPE'], mode: 'avg' }).key).toBe('nodata');
+});

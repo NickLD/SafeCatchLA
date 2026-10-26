@@ -100,3 +100,11 @@ test('changeOver reports how many samples each end rests on', () => {
   const c = changeOver(peigneur, 'all', 2026, 'period');
   expect([c.earlyN, c.lateN]).toEqual([3, 1]);
 });
+
+test('speciesYears pools a list of species, and treats an empty list as all', () => {
+  const site = { species: { A: { years: { '2020': [1, 2] } }, B: { years: { '2020': [0.5, 1] } }, C: { years: { '2021': [3, 1] } } } };
+  expect(speciesYears(site, ['A', 'B'])).toEqual({ '2020': [1.5, 3] });
+  expect(speciesYears(site, ['A'])).toEqual({ '2020': [1, 2] });
+  expect(speciesYears(site, [])).toEqual({ '2020': [1.5, 3], '2021': [3, 1] });
+  expect(speciesYears(site, ['Z'])).toBeNull();
+});

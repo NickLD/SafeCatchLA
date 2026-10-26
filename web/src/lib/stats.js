@@ -103,8 +103,15 @@ export function mixedYears(site) {
   return out;
 }
 
+// species: one name, ALL_SPECIES, or a list of names (an empty list means all; several are pooled).
 export function speciesYears(site, species) {
   if (species === ALL_SPECIES) return mixedYears(site);
+  if (Array.isArray(species)) {
+    if (!species.length) return mixedYears(site);
+    const present = species.filter((s) => site.species[s]);
+    if (!present.length) return null;
+    return mixedYears({ species: Object.fromEntries(present.map((s) => [s, site.species[s]])) });
+  }
   return site.species[species]?.years ?? null;
 }
 

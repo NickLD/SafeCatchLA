@@ -1,12 +1,15 @@
 <script>
-  import { ALL_SPECIES, CONTAMINANTS, DEQ_MERCURY_URL, EPA_GUIDELINE_PPM, EPA_NLA_URL } from '../lib/config.js';
+  import { CONTAMINANTS, DEQ_MERCURY_URL, EPA_GUIDELINE_PPM, EPA_NLA_URL } from '../lib/config.js';
   import { MODE_LABELS } from '../lib/coloring.js';
-  import { displaySpecies, formatDate } from '../lib/format.js';
-  import { app } from '../lib/state.svelte.js';
+  import { formatDate } from '../lib/format.js';
+  import { filterLabel } from '../lib/speciesGroups.js';
+  import { app, speciesBySampleCount } from '../lib/state.svelte.js';
   import Thermometer from './Thermometer.svelte';
 
   let open = $state(false);
-  let mixed = $derived(app.filter === ALL_SPECIES && ['avg', 'trend'].includes(app.color));
+  // Pooling several species is labelled "mixed" wherever the color is a mercury value or trend.
+  let pooled = $derived(app.filter.length !== 1 && ['avg', 'trend'].includes(app.color));
+  let selection = $derived(filterLabel(app.filter, speciesBySampleCount(app.sites)));
 </script>
 
 <div class="legend">
@@ -15,7 +18,7 @@
     <button onclick={() => (open = !open)} aria-expanded={open} aria-label="About these colors">ⓘ</button>
   </div>
   <div class="sub">
-    {CONTAMINANTS[0].label} in fish tissue · {mixed ? 'All species (mixed)' : app.filter === ALL_SPECIES ? 'All species' : displaySpecies(app.filter)}
+    {CONTAMINANTS[0].label} in fish tissue · {selection}{pooled ? ' (mixed)' : ''}
   </div>
   <Thermometer />
   <div class="nodata"><span class="dot hollow"></span>{app.color === 'trend' ? 'Too few years to tell' : 'No recent data'}</div>
@@ -31,7 +34,7 @@
       {:else}
         Drag the handles to set the range the colors span.
       {/if}
-      Averages are per species; "All species (mixed)" pools every species and can hide high-mercury fish.
+      With more than one species selected, colors pool them ("mixed"), which can hide high-mercury fish.
     </p>
   {/if}
   {#if app.meta}

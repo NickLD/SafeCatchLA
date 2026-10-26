@@ -1,19 +1,14 @@
 <script>
-  import { ALL_SPECIES, CONTAMINANTS, PERIOD_LABELS, PERIODS } from '../lib/config.js';
+  import { CONTAMINANTS, PERIOD_LABELS, PERIODS } from '../lib/config.js';
   import { MODE_SHORT, MODES } from '../lib/coloring.js';
-  import { displaySpecies } from '../lib/format.js';
   import { searchSites } from '../lib/search.js';
-  import { app, speciesBySampleCount, update } from '../lib/state.svelte.js';
+  import { app, update } from '../lib/state.svelte.js';
   import InstallButton from './InstallButton.svelte';
+  import SpeciesPicker from './SpeciesPicker.svelte';
 
   let { onPick, onLocate } = $props();
   let query = $state('');
   let results = $derived(searchSites(app.sites, query));
-  let speciesOptions = $derived.by(() => {
-    const names = speciesBySampleCount(app.sites, app.period, app.latestYear);
-    // Keep a chosen species listed even if the period has none, so the select doesn't go blank.
-    return app.filter !== ALL_SPECIES && !names.includes(app.filter) ? [app.filter, ...names] : names;
-  });
 
   // Fade the right edge only while pills are actually hidden past it.
   let pillsEl = $state();
@@ -62,12 +57,7 @@
     <select aria-label="Contaminant" disabled={CONTAMINANTS.length === 1}>
       {#each CONTAMINANTS as c (c.id)}<option value={c.id}>{c.label}</option>{/each}
     </select>
-    <select aria-label="Species" value={app.filter} onchange={(e) => update({ filter: e.currentTarget.value })}>
-      <option value={ALL_SPECIES}>All species</option>
-      {#each speciesOptions as name (name)}
-        <option value={name}>{displaySpecies(name)}</option>
-      {/each}
-    </select>
+    <SpeciesPicker />
     <select aria-label="Color by" value={app.color} onchange={(e) => update({ color: e.currentTarget.value, range: null })}>
       {#each MODES as m (m)}<option value={m}>{MODE_SHORT[m]}</option>{/each}
     </select>
@@ -102,7 +92,6 @@
   /* Pills keep their full text; the row scrolls sideways on narrow phones. */
   select { padding: 0 10px; flex: 0 0 auto; font-size: 14px; }
   select:disabled { opacity: 1; color: var(--text); }
-  select[aria-label='Species'] { max-width: 40vw; }
   .locate { width: 44px; flex-shrink: 0; cursor: pointer; }
   ul {
     position: absolute; top: 48px; left: 0; right: 0; margin: 0; padding: 4px 0; list-style: none;

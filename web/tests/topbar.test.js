@@ -13,7 +13,7 @@ const SITES = [
 beforeEach(() => {
   app.sites = SITES;
   app.period = 10;
-  app.filter = 'ALL';
+  app.filter = [];
 });
 
 test('search shows matching sites and picking one calls onPick', async () => {
@@ -32,11 +32,6 @@ test('period select updates app state', async () => {
   expect(app.period).toBe('all');
 });
 
-test('species filter lists species by sample count', () => {
-  render(TopBar, { onPick: () => {}, onLocate: () => {} });
-  const opts = [...screen.getByLabelText('Species').querySelectorAll('option')].map((o) => o.textContent);
-  expect(opts).toEqual(['All species', 'Largemouth Bass', 'Bowfin']);
-});
 
 test('contaminant pill lists mercury', () => {
   render(TopBar, { onPick: () => {}, onLocate: () => {} });
@@ -44,13 +39,40 @@ test('contaminant pill lists mercury', () => {
   expect(opts).toEqual(['Mercury']);
 });
 
-test('species filter only offers species with samples in the period', () => {
-  app.sites = [
-    { id: '1', name: 'A', address: '', n: 5, species: { BOWFIN: { n: 5, latest: ['2001-01-01', 0.4], years: { '2001': [2, 5] } } } },
-    { id: '2', name: 'B', address: '', n: 2, species: { 'LARGEMOUTH BASS': { n: 2, latest: ['2024-01-01', 0.4], years: { '2024': [1, 2] } } } },
-  ];
-  Object.assign(app, { period: 5, latestYear: 2026, filter: 'ALL' });
+
+const BASS_SITES = [
+  { id: '1', name: 'A', address: '', n: 9, species: {
+    'LARGEMOUTH BASS': { n: 6, latest: ['2024-01-01', 0.4], years: { '2024': [2, 6] } },
+    'SPOTTED BASS': { n: 2, latest: ['2024-01-01', 0.4], years: { '2024': [1, 2] } },
+    BLUEGILL: { n: 1, latest: ['2024-01-01', 0.1], years: { '2024': [0.1, 1] } },
+    BOWFIN: { n: 9, latest: ['2001-01-01', 0.5], years: { '2001': [4, 9] } },
+  } },
+];
+
+function openPicker() {
+  Object.assign(app, { sites: BASS_SITES, period: 5, latestYear: 2026, filter: [] });
   render(TopBar, { onPick: () => {}, onLocate: () => {} });
-  const opts = [...screen.getByLabelText('Species').querySelectorAll('option')].map((o) => o.textContent);
-  expect(opts).toEqual(['All species', 'Largemouth Bass']);
+  return fireEvent.click(screen.getByRole('button', { name: 'Species: All species' }));
+}
+
+test('species picker groups species and hides ones with no samples in the period', async () => {
+  await openPicker();
+  const dialog = screen.getByRole('dialog', { name: 'Choose species' });
+  const boxes = within(dialog).getAllByRole('checkbox').map((c) => c.getAttribute('aria-label'));
+  expect(boxes).toEqual(['All species', 'Bass', 'Largemouth Bass', 'Spotted Bass', 'Sunfish (bream)', 'Bluegill']);
+});
+
+test('checking a group selects all its species; unchecking one makes the group partial', async () => {
+  await openPicker();
+  const dialog = screen.getByRole('dialog', { name: 'Choose species' });
+  await fireEvent.click(within(dialog).getByRole('checkbox', { name: 'Bass' }));
+  expect(app.filter).toEqual(['LARGEMOUTH BASS', 'SPOTTED BASS']);
+  expect(screen.getByRole('button', { name: 'Species: Bass (2)' })).toBeTruthy();
+  await fireEvent.click(within(dialog).getByRole('checkbox', { name: 'Spotted Bass' }));
+  expect(app.filter).toEqual(['LARGEMOUTH BASS']);
+  expect(within(dialog).getByRole('checkbox', { name: 'Bass' }).getAttribute('aria-checked')).toBe('mixed');
+  await fireEvent.click(within(dialog).getByRole('checkbox', { name: 'Bluegill' }));
+  expect(screen.getByRole('button', { name: 'Species: 2 species' })).toBeTruthy();
+  await fireEvent.click(within(dialog).getByRole('checkbox', { name: 'All species' }));
+  expect(app.filter).toEqual([]);
 });

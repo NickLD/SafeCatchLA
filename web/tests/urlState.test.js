@@ -3,7 +3,8 @@ import { DEFAULTS, parseHash, sanitizeState, toHash } from '../src/lib/urlState.
 
 test('parseHash valid', () => {
   expect(parseHash('#site=0436&species=LARGEMOUTH%20BASS&period=all&color=age&filter=BOWFIN'))
-    .toEqual({ site: '0436', species: 'LARGEMOUTH BASS', filter: 'BOWFIN', period: 'all', color: 'age', compare: null, range: null });
+    .toEqual({ site: '0436', species: 'LARGEMOUTH BASS', filter: ['BOWFIN'], period: 'all', color: 'age', compare: null, range: null });
+  expect(parseHash('#filter=LARGEMOUTH%20BASS,SPOTTED%20BASS').filter).toEqual(['LARGEMOUTH BASS', 'SPOTTED BASS']);
   expect(parseHash('#period=5').period).toBe(5);
   expect(parseHash('#color=count').color).toBe('avg'); // removed modes in old links
   expect(parseHash('#color=latest').color).toBe('avg');
@@ -16,7 +17,7 @@ test('parseHash ignores bad values', () => {
 });
 
 test('toHash round trip and omits defaults', () => {
-  const s = { ...DEFAULTS, site: '0436', species: 'LARGEMOUTH BASS', period: 'all', compare: 'BOWFIN' };
+  const s = { ...DEFAULTS, site: '0436', species: 'LARGEMOUTH BASS', period: 'all', compare: 'BOWFIN', filter: ['LARGEMOUTH BASS', 'SPOTTED BASS'] };
   expect(parseHash(toHash(s))).toEqual(s);
   expect(toHash(DEFAULTS)).toBe('');
 });
@@ -32,8 +33,9 @@ test('sanitizeState drops values the data does not have', () => {
   expect(sanitizeState({ ...base, species: 'NOT A FISH' }, SITES)).toEqual({ species: 'LARGEMOUTH BASS' });
   expect(sanitizeState({ ...base, compare: 'BLUE CATFISH' }, SITES)).toEqual({ compare: null });
   expect(sanitizeState({ ...base, compare: 'ALL' }, SITES)).toEqual({});
-  expect(sanitizeState({ ...base, filter: 'FOO' }, SITES)).toEqual({ filter: 'ALL' });
-  expect(sanitizeState({ ...base, filter: 'BLUE CATFISH' }, SITES)).toEqual({});
+  expect(sanitizeState({ ...base, filter: ['FOO'] }, SITES)).toEqual({ filter: [] });
+  expect(sanitizeState({ ...base, filter: ['BLUE CATFISH', 'FOO'] }, SITES)).toEqual({ filter: ['BLUE CATFISH'] });
+  expect(sanitizeState({ ...base, filter: ['BLUE CATFISH'] }, SITES)).toEqual({});
   expect(sanitizeState({ ...base, site: 'nope' }, SITES)).toEqual({ site: null, species: null, compare: null });
   expect(sanitizeState({ ...DEFAULTS, site: '0436' }, SITES)).toEqual({ species: 'LARGEMOUTH BASS' });
 });

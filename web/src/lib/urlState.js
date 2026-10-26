@@ -2,7 +2,7 @@
 import { ALL_SPECIES, DEFAULT_PERIOD, PERIODS } from './config.js';
 import { MODES } from './coloring.js';
 
-export const DEFAULTS = { site: null, species: null, filter: ALL_SPECIES, period: DEFAULT_PERIOD, color: 'avg', compare: null, range: null };
+export const DEFAULTS = { site: null, species: null, filter: [], period: DEFAULT_PERIOD, color: 'avg', compare: null, range: null };
 
 function parsePeriod(v) {
   const p = v === 'all' ? 'all' : Number(v);
@@ -17,10 +17,12 @@ export function parseHash(hash) {
   } catch {
     return state;
   }
-  for (const key of ['site', 'species', 'filter', 'compare']) {
+  for (const key of ['site', 'species', 'compare']) {
     const v = params.get(key);
     if (v) state[key] = v;
   }
+  // Species filter: comma-separated names; empty means all species.
+  state.filter = (params.get('filter') ?? '').split(',').filter((s) => s && s !== ALL_SPECIES);
   state.period = parsePeriod(params.get('period')) ?? DEFAULTS.period;
   const range = (params.get('range') ?? '').split(',').map(Number);
   if (range.length === 2 && range.every(Number.isFinite) && range[0] < range[1]) state.range = range;
@@ -40,7 +42,8 @@ export function sanitizeState(state, sites) {
     }
     if (state.compare && state.compare !== ALL_SPECIES && !site.species[state.compare]) patch.compare = null;
   }
-  if (state.filter !== ALL_SPECIES && !sites.some((s) => s.species[state.filter])) patch.filter = ALL_SPECIES;
+  const known = state.filter.filter((name) => sites.some((s) => s.species[name]));
+  if (known.length !== state.filter.length) patch.filter = known;
   return patch;
 }
 
@@ -48,7 +51,7 @@ export function toHash(state) {
   const parts = [];
   for (const key of Object.keys(DEFAULTS)) {
     const v = state[key];
-    if (v !== null && v !== undefined && v !== DEFAULTS[key]) {
+    if (v !== null && v !== undefined && v !== DEFAULTS[key] && !(Array.isArray(v) && !v.length)) {
       parts.push(`${key}=${encodeURIComponent(Array.isArray(v) ? v.join(',') : v)}`);
     }
   }

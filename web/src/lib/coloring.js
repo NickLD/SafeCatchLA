@@ -84,7 +84,8 @@ export function gradientStops(mode, [min, max]) {
 }
 
 function speciesEntries(site, species) {
-  if (species === ALL_SPECIES) return Object.values(site.species);
+  if (species === ALL_SPECIES || (Array.isArray(species) && !species.length)) return Object.values(site.species);
+  if (Array.isArray(species)) return species.map((s) => site.species[s]).filter(Boolean);
   const sp = site.species[species];
   return sp ? [sp] : [];
 }
