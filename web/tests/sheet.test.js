@@ -202,3 +202,9 @@ test('one sample of many fish gets no single-fish warning', () => {
   expect(screen.queryByText(/⚠ 1 fish/)).toBeNull();
   expect(within(screen.getByRole('region', { name: 'Summary' })).getByText(/1 sample \(10 fish\)/)).toBeTruthy();
 });
+
+test('all species list spells out samples and fish', () => {
+  renderSheet();
+  const items = within(screen.getByRole('list', { name: 'All species here' })).getAllByRole('listitem');
+  expect(items[0].textContent).toMatch(/\d+ samples? made up of \d+ fish/);
+});

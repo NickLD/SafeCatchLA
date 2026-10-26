@@ -21,7 +21,10 @@
     <li>
       <span class="name">{displaySpecies(e.name)}</span>
       <span class="bar" style:width="{(e.m.mean / max) * 100}%" style:background={scaleColor('avg', e.m.mean, colorRange)}></span>
-      <span class="val">{formatPpm(e.m.mean)} ({e.m.n}){#if e.m.fish === 1}<br /><OneFish />{/if}</span>
+      <span class="val">{formatPpm(e.m.mean)}</span>
+      <span class="detail">
+        {e.m.n} {e.m.n === 1 ? 'sample' : 'samples'} made up of {e.m.fish} fish{#if e.m.fish === 1} <OneFish />{/if}
+      </span>
     </li>
   {/each}
 </ul>
@@ -29,7 +32,8 @@
 <style>
   h3 { margin: 12px 0 4px; font-size: 15px; }
   ul { list-style: none; margin: 0; padding: 0; font-size: 13px; }
-  li { display: grid; grid-template-columns: 9em 1fr 5.5em; align-items: center; gap: 6px; line-height: 1.9; }
+  li { display: grid; grid-template-columns: 9em 1fr 3em; align-items: center; gap: 6px; line-height: 1.9; }
   .bar { height: 10px; border-radius: 2px; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.2); }
   .val { text-align: right; }
+  .detail { grid-column: 1 / -1; margin-top: -6px; font-size: 11px; line-height: 1.5; color: var(--muted); }
 </style>
