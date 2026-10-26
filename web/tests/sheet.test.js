@@ -145,7 +145,7 @@ test('drawer credits LDEQ with links and an independence disclaimer', () => {
 test('data source footer shows last pull and last change', () => {
   Object.assign(app, { meta: { updated: '2026-10-24' }, status: { checkedAt: '2026-10-31T11:02:00Z' } });
   renderSheet();
-  expect(screen.getByText(/last pulled from LDEQ on Oct 31, 2026/)).toBeTruthy();
+  expect(screen.getByText(/last pulled from LDEQ on Oct 31, 2026 \(data last changed Oct 24, 2026\)\./)).toBeTruthy();
   expect(screen.getByText(/data last changed Oct 24, 2026/)).toBeTruthy();
   Object.assign(app, { meta: null, status: null });
 });

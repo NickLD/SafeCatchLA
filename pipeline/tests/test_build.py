@@ -114,3 +114,17 @@ def test_fish_counts_single_fish_and_missing_counts_as_one(tmp_path):
     build(rows, SITE_ROWS, tmp_path, date(2026, 10, 24))
     bass = json.loads((tmp_path / "sites.json").read_text())["sites"][0]["species"]["LARGEMOUTH BASS"]
     assert bass["years"]["2012"][1:] == [2, 2]
+
+
+def test_updated_tracks_ldeq_source_data_not_our_output(tmp_path):
+    # A rebuild with new processing but the same LDEQ rows must keep "updated"; only a change in LDEQ's rows moves it.
+    m1 = build(ROWS, SITE_ROWS, tmp_path, date(2026, 10, 24))
+    (tmp_path / "sites.json").write_text("{}")  # simulate our output changing (new processing rules)
+    meta = json.loads((tmp_path / "meta.json").read_text())
+    meta["dataHash"] = "output-hash-from-an-older-build"
+    (tmp_path / "meta.json").write_text(json.dumps(meta))
+    m2 = build(ROWS, SITE_ROWS, tmp_path, date(2026, 10, 25))
+    assert m2["updated"] == m1["updated"] == "2026-10-24"
+    assert m2["sourceHash"] == m1["sourceHash"]
+    m3 = build(ROWS + [EXTRA_ROW], SITE_ROWS, tmp_path, date(2026, 10, 26))
+    assert m3["updated"] == "2026-10-26"

@@ -11,7 +11,7 @@
   <p>
     Sample results come from the Louisiana Department of Environmental Quality (LDEQ) Mercury Initiative database
     (project WQ1994001).
-    {#if checked}They were last pulled from LDEQ on {formatDate(checked)}{#if updated} (data last changed {formatDate(updated)}){/if}.
+    {#if checked}{`They were last pulled from LDEQ on ${formatDate(checked)}${updated ? ` (data last changed ${formatDate(updated)})` : ''}.`}
     {:else if updated}The data last changed {formatDate(updated)}.{/if}
     See
     <a href={deqSiteUrl(siteId)} target="_blank" rel="noopener">this site's records on LDEQ ↗</a> or the full

@@ -119,10 +119,15 @@ def build(mercury_rows, site_rows, out_dir, today, checked_at=None):
         digest.update(k.encode() + text.encode())
     data_hash = digest.hexdigest()
 
+    # "updated" = when LDEQ's own fish-tissue rows last changed, fingerprinted from the source rows (not our
+    # output), so a rebuild with new processing rules doesn't look like new data.
+    tissue = sorted(_dump(r) for r in mercury_rows if r.get("PARAMETER") == "MERCURY" and r.get("MATRIX") == "TE")
+    source_hash = hashlib.sha256("\n".join(tissue).encode()).hexdigest()
     meta_path = out_dir / "meta.json"
     previous = json.loads(meta_path.read_text()) if meta_path.exists() else {}
     meta = {
-        "updated": previous["updated"] if previous.get("dataHash") == data_hash else today.isoformat(),
+        "updated": previous["updated"] if previous.get("sourceHash") == source_hash else today.isoformat(),
+        "sourceHash": source_hash,
         "dataHash": data_hash,
         "rawTissueRows": sum(1 for r in mercury_rows if r.get("PARAMETER") == "MERCURY" and r.get("MATRIX") == "TE"),
         "samples": len(samples),
