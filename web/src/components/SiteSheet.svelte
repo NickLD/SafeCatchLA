@@ -124,7 +124,8 @@
     <Disclaimer />
 
     <h3>{displaySpecies(species)} over time</h3>
-    <TrendChart years={entry.years} {samples} {stateAvg} cuts={app.sizeClasses[species]} {period} {latestYear} />
+    <TrendChart years={entry.years} {samples} {stateAvg} cuts={app.sizeClasses[species]} {period} {latestYear}
+                title="{displaySpecies(species)} · {site.name}" />
 
     <CompareBars {site} {national} {period} {latestYear} options={shown} selected={species} />
     <AllSpeciesList {site} {period} {latestYear} />

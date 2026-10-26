@@ -22,7 +22,8 @@ test('size chips filter the samples and the yearly line', async () => {
   expect(screen.getByRole('button', { name: '1994: 0.40 ppm' })).toBeTruthy();
   await fireEvent.click(screen.getByRole('button', { name: 'Large (15.5"+)' }));
   expect(screen.getAllByRole('button', { name: /ppm ·/ })).toHaveLength(2);
-  expect(screen.getByRole('button', { name: '1994: 0.20 ppm' })).toBeTruthy();
+  // 1994 is down to one sample, so its average bar gives way to that sample's dot.
+  expect(screen.queryByRole('button', { name: /^1994: / })).toBeNull();
 });
 
 test('without size cutoffs there are no chips and the line uses the yearly data', () => {
@@ -45,21 +46,22 @@ test('no period marker for all years, or when the whole history is inside the pe
   expect(screen.queryByText(/yrs →/)).toBeNull();
 });
 
-test('tapping the yearly point of a single-sample year shows that sample and its size', async () => {
+test('a single-sample year has no average bar; tapping its sample says it is the only one', async () => {
   const one = [{ date: '2016-05-01', value: 0.3, nd: false, weightG: 500, lengthCm: 36, nFish: 3, composite: true }];
   render(TrendChart, { years: { '2016': [0.3, 1] }, samples: one, cuts: CUTS });
-  await fireEvent.click(screen.getByRole('button', { name: '2016: 0.30 ppm' }));
+  expect(screen.queryByRole('button', { name: /^2016: / })).toBeNull();
+  await fireEvent.click(screen.getByRole('button', { name: /May 1, 2016/ }));
   const status = screen.getByRole('status').textContent;
   expect(status).toContain('May 1, 2016 · 0.30 ppm · 14.17 in, 1.10 lb · average of 3 fish');
   expect(status).toContain('Medium (13.0–15.5")');
-  expect(status).toContain('1 sample');
+  expect(status).toContain('the only sample that year');
 });
 
-test('sample dots are drawn above the yearly points so they can be tapped', () => {
+test('sample dots are drawn above the yearly bars so they can be tapped', () => {
   const { container } = render(TrendChart, { years: YEARS, samples: SAMPLES, cuts: CUTS });
-  const circles = [...container.querySelectorAll('circle')];
-  const lastYearPoint = circles.map((c) => c.classList.contains('pt')).lastIndexOf(true);
-  const firstSample = circles.findIndex((c) => c.classList.contains('sample'));
+  const marks = [...container.querySelectorAll('.pt, .hit, .sample')];
+  const lastYearPoint = marks.map((c) => !c.classList.contains('sample')).lastIndexOf(true);
+  const firstSample = marks.findIndex((c) => c.classList.contains('sample'));
   expect(firstSample).toBeGreaterThan(lastYearPoint);
 });
 
@@ -116,4 +118,24 @@ test('samples early in the first year and late in the last year stay inside the 
   const xs = [...container.querySelectorAll('circle.sample')].map((c) => Number(c.getAttribute('cx')));
   expect(Math.min(...xs)).toBeGreaterThanOrEqual(34);
   expect(Math.max(...xs)).toBeLessThanOrEqual(332);
+});
+
+test('the chart enlarges to full screen with its title, zooms in time, and Escape closes it', async () => {
+  render(TrendChart, { years: YEARS, samples: SAMPLES, cuts: CUTS, title: 'Largemouth Bass · Test Site' });
+  await fireEvent.click(screen.getByRole('button', { name: 'Enlarge chart' }));
+  const dialog = screen.getByRole('dialog');
+  expect(dialog.textContent).toContain('Largemouth Bass · Test Site');
+  expect(dialog.parentNode).toBe(document.body); // lifted out of the drawer
+  // Same chart: layer chips and point details still work.
+  await fireEvent.click(screen.getByRole('button', { name: /Sep 1, 1994/ }));
+  expect(screen.getByRole('status').textContent).toContain('Sep 1, 1994');
+  expect(screen.getByRole('button', { name: 'Zoom out on years' }).disabled).toBe(true);
+  await fireEvent.click(screen.getByRole('button', { name: 'Zoom in on years' }));
+  expect(screen.getByRole('button', { name: 'Reset' })).toBeTruthy();
+  expect(screen.getByRole('button', { name: 'Zoom out on years' }).disabled).toBe(false);
+  await fireEvent.click(screen.getByRole('button', { name: 'Reset' }));
+  expect(screen.queryByRole('button', { name: 'Reset' })).toBeNull();
+  await fireEvent.keyDown(window, { key: 'Escape' });
+  expect(screen.queryByRole('dialog')).toBeNull();
+  expect(screen.getByRole('status').textContent).toContain('Sep 1, 1994'); // selection kept after closing
 });
