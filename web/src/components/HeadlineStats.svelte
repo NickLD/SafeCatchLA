@@ -5,7 +5,7 @@
 
   let { entry, period, latestYear } = $props();
   let avg = $derived(periodMean(entry.years, period, latestYear));
-  let basis = $state('period');
+  let basis = $state('previous'); // latest sampled year vs the one before; 'period' compares across the period
   let change = $derived(changeOver(entry.years, period, latestYear, basis));
   const span = ([a, b]) => (a === b ? String(a) : `${a}–${String(b % 100).padStart(2, '0')}`);
   let changeText = $derived(change && (basis === 'previous' ? `${change.late[0]} vs ${change.early[0]}` : `since ${span(change.early)}`));
@@ -43,8 +43,8 @@
       <small>{basis === 'previous' ? 'Only one sampled year' : 'Not enough years in period'}</small>
     {/if}
     <select aria-label="Compare change" bind:value={basis}>
-      <option value="period">change over period</option>
       <option value="previous">vs previous sample</option>
+      <option value="period">change over period</option>
     </select>
   </div>
 </section>

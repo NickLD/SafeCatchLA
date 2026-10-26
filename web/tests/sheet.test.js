@@ -93,17 +93,18 @@ test('disclaimer is one compact line until expanded', async () => {
   expect(note.textContent).toMatch(/Mercury averages here may be above advisory levels/);
 });
 
-test('change tile follows the period and can switch to previous sample', async () => {
+test('change tile defaults to previous sample and can switch to the period', async () => {
   const site = { ...SITE, species: { 'LARGEMOUTH BASS': { n: 6, latest: ['2018-05-01', 0.2, 1],
     years: { '1994': [0.8, 1], '1995': [0.6, 1], '2008': [0.5, 2], '2016': [0.3, 1], '2018': [0.2, 1] } } } };
   Object.assign(app, { sites: [site], latestYear: 2026, period: 20, site: '0001', species: 'LARGEMOUTH BASS', compare: null });
   render(SiteSheet, { site, national: NATIONAL, latestYear: 2026, period: 20 });
   const summary = screen.getByRole('region', { name: 'Summary' });
-  expect(within(summary).getByText('0%')).toBeTruthy();
-  expect(within(summary).getByText('since 2008')).toBeTruthy();
-  await fireEvent.change(within(summary).getByLabelText('Compare change'), { target: { value: 'previous' } });
+  expect(within(summary).getByLabelText('Compare change').value).toBe('previous');
   expect(within(summary).getByText('↓33%')).toBeTruthy();
   expect(within(summary).getByText('2018 vs 2016')).toBeTruthy();
+  await fireEvent.change(within(summary).getByLabelText('Compare change'), { target: { value: 'period' } });
+  expect(within(summary).getByText('0%')).toBeTruthy();
+  expect(within(summary).getByText('since 2008')).toBeTruthy();
 });
 
 const MIXED_SITE = {
