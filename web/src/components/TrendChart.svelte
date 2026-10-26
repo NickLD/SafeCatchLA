@@ -21,7 +21,8 @@
   let W = $derived(full && boxW ? boxW / k : BASE_W);
   let H = $derived(full && boxH ? Math.max(160, boxH / k) : BASE_H);
   let hidden = $state(new Set());
-  let selected = $state(null); // { kind: 'year', p } | { kind: 'sample', s, soleInYear }
+  // Raw (not deeply reactive) so selected.s stays the very sample object the chart drew, for finding it again.
+  let selected = $state.raw(null); // { kind: 'year', p } | { kind: 'sample', s, soleInYear }
 
   let classed = $derived(samples.map((s) => ({ ...s, cls: sizeClass(s.lengthCm, cuts) })));
   let visible = $derived(classed.filter((s) => !s.cls || !hidden.has(s.cls)));
@@ -96,8 +97,15 @@
 
   let showAvg = $state(true);
 
+  // Tapping the point that's already selected clears it.
   function pick(item) {
-    selected = item;
+    const same = item.kind === selected?.kind && (item.kind === 'sample' ? item.s === selected.s : item.p.year === selected.p.year);
+    selected = same ? null : item;
+  }
+
+  // Tapping empty chart space (anything but a point) clears the selection.
+  function onChartClick(e) {
+    if (!e.target.closest('[role="button"]')) selected = null;
   }
 
   function pickSample(s) {
@@ -272,7 +280,7 @@
   <div class="wrap" bind:this={wrapEl}>
     <svg viewBox="0 0 {W} {H}" role="img" aria-label="Mercury over time, by sample" bind:this={svgEl}
          onpointerdown={onDown} onpointermove={onMove} onpointerup={onUp} onpointercancel={onUp} onpointerleave={onUp}
-         onclickcapture={onClickCapture}>
+         onclickcapture={onClickCapture} onclick={onChartClick}>
       <defs><clipPath id={clipId}><rect x={L - 6} y="0" width={W - L - R + 12} height={H - B + 6} /></clipPath></defs>
       {#each ticks(yMax) as t (t)}
         <line x1={L} x2={W - R} y1={sy(t)} y2={sy(t)} class="grid" />

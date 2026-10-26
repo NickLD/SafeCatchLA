@@ -152,3 +152,23 @@ test('in full screen, touch drags on the chart are not left to the browser to sc
   await fireEvent.click(screen.getByRole('button', { name: 'Enlarge chart' }));
   expect(move()).toBe(true);
 });
+
+test('a selected sample is ringed; tapping empty chart space or the same point again clears the selection', async () => {
+  const { container } = render(TrendChart, { years: YEARS, samples: SAMPLES, cuts: CUTS });
+  const svg = container.querySelector('svg');
+  const ring = () => container.querySelector('circle.ring');
+  await fireEvent.click(screen.getByRole('button', { name: /Sep 1, 1994/ }));
+  expect(ring()).toBeTruthy();
+  await fireEvent.click(svg);
+  expect(ring()).toBeNull();
+  expect(screen.getByRole('status').textContent).toContain('Tap any point for details');
+
+  await fireEvent.click(screen.getByRole('button', { name: '1994: 0.40 ppm' }));
+  expect(ring()).toBeTruthy();
+  await fireEvent.click(svg);
+  expect(ring()).toBeNull();
+
+  await fireEvent.click(screen.getByRole('button', { name: '1994: 0.40 ppm' }));
+  await fireEvent.click(screen.getByRole('button', { name: '1994: 0.40 ppm' }));
+  expect(ring()).toBeNull();
+});
