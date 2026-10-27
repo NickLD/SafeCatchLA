@@ -4,6 +4,7 @@
   import MapView from './components/MapView.svelte';
   import SiteSheet from './components/SiteSheet.svelte';
   import TopBar from './components/TopBar.svelte';
+  import UpdatePrompt from './components/UpdatePrompt.svelte';
   import { loadMeta, loadNational, loadSites, loadStatus } from './lib/data.js';
   import { sanitizeState } from './lib/urlState.js';
   import { app, defaultSpecies, initFromHash, selectedSite, update } from './lib/state.svelte.js';
@@ -67,6 +68,7 @@
     <div class="notice">Couldn't load the data. Check your connection and reload.</div>
   {/if}
   {#if toast}<div class="notice">{toast}</div>{/if}
+  <UpdatePrompt />
 </main>
 
 <style>

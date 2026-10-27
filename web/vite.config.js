@@ -7,7 +7,7 @@ export default defineConfig({
   plugins: [
     svelte(),
     VitePWA({
-      registerType: 'autoUpdate',
+      registerType: 'prompt', // main.js shows a "New version available" banner with a Reload button
       includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
       manifest: {
         name: 'SafeCatchLA',
