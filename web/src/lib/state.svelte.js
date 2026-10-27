@@ -20,8 +20,10 @@ export function selectedSite() {
 }
 
 // Species with the most samples at a site, for when a site is opened without one chosen.
-export function defaultSpecies(site) {
-  return Object.entries(site.species).sort((a, b) => b[1].n - a[1].n)[0]?.[0] ?? null;
+// With a species filter, the most-sampled filtered species found there (any species if none are).
+export function defaultSpecies(site, filter = []) {
+  const ranked = Object.entries(site.species).sort((a, b) => b[1].n - a[1].n).map(([name]) => name);
+  return ranked.find((name) => filter.includes(name)) ?? ranked[0] ?? null;
 }
 
 // Species in the dataset with samples in the period (all species by default), most-sampled first.

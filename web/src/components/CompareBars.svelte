@@ -1,5 +1,5 @@
 <script>
-  import { ALL_SPECIES, BASINS, EPA_GUIDELINE_PPM, NATIONAL_MIN_N } from '../lib/config.js';
+  import { ALL_SPECIES, BASINS, EPA_GUIDELINE_PPM, FILTER_SPECIES, NATIONAL_MIN_N } from '../lib/config.js';
   import { displaySpecies, formatPpm } from '../lib/format.js';
   import { app, update } from '../lib/state.svelte.js';
   import { groupMean, periodMean, speciesYears } from '../lib/stats.js';
@@ -7,9 +7,14 @@
 
   let { site, national, period, latestYear, options, selected } = $props();
 
-  let species = $derived(app.compare && (app.compare === ALL_SPECIES || options.includes(app.compare)) ? app.compare : selected);
+  // With several species chosen on the map, they can be compared pooled, the way the map colors them.
+  let combined = $derived(app.filter.length > 1);
+  let choice = $derived(
+    app.compare && (app.compare === ALL_SPECIES || (app.compare === FILTER_SPECIES && combined) || options.includes(app.compare)) ? app.compare : selected,
+  );
 
   let rows = $derived.by(() => {
+    const species = choice === FILTER_SPECIES ? app.filter : choice;
     const own = periodMean(speciesYears(site, species), period, latestYear);
     const out = [{ label: 'This site', value: own?.mean ?? null, note: own ? `${own.n} ${own.n === 1 ? 'sample' : 'samples'}` : 'no samples in period', own: true, one: own?.fish === 1 }];
     if (site.basin) {
@@ -18,8 +23,9 @@
     }
     const st = groupMean(app.sites, species, period, latestYear);
     out.push({ label: 'Louisiana', value: st?.mean ?? null, note: st ? `${st.nSites} sites` : 'no data' });
-    const nat = species === ALL_SPECIES ? national?.all : national?.species?.[species];
-    // EPA only sampled a handful of species nationally; leave the row out when it has nothing for this one.
+    // EPA only sampled a handful of species nationally; leave the row out when it has nothing for this one
+    // (or for a pooled selection, which EPA's per-species figures can't stand in for).
+    const nat = species === ALL_SPECIES ? national?.all : Array.isArray(species) ? null : national?.species?.[species];
     if (nat && nat.n >= NATIONAL_MIN_N) out.push({ label: 'U.S. lakes (EPA 2022)', value: nat.mean, note: `${nat.n} samples` });
     return out;
   });
@@ -29,7 +35,8 @@
 <section aria-label="Compare">
   <div class="head">
     <h3>Compare</h3>
-    <select aria-label="Compare species" value={species} onchange={(e) => update({ compare: e.currentTarget.value })}>
+    <select aria-label="Compare species" value={choice} onchange={(e) => update({ compare: e.currentTarget.value })}>
+      {#if combined}<option value={FILTER_SPECIES}>{displaySpecies(FILTER_SPECIES)}</option>{/if}
       {#each options as name (name)}<option value={name}>{displaySpecies(name)}</option>{/each}
       <option value={ALL_SPECIES}>{displaySpecies(ALL_SPECIES)}</option>
     </select>

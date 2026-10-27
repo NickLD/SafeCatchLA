@@ -1,7 +1,8 @@
-import { ALL_SPECIES } from './config.js';
+import { ALL_SPECIES, FILTER_SPECIES } from './config.js';
 
 export function displaySpecies(name) {
   if (name === ALL_SPECIES) return 'All species (mixed)';
+  if (name === FILTER_SPECIES) return 'Selected species (combined)';
   return name.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
 }
 

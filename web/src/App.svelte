@@ -15,7 +15,7 @@
 
   function select(site) {
     const keep = app.site === site.id && app.species;
-    update({ site: site.id, species: keep ? app.species : defaultSpecies(site) });
+    update({ site: site.id, species: keep ? app.species : defaultSpecies(site, app.filter) });
   }
 
   function pick(site) {

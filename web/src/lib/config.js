@@ -10,6 +10,8 @@ export const deqSiteUrl = (id) => `https://waterdata.deq.louisiana.gov/Collectio
 export const EPA_NLA_URL = 'https://www.epa.gov/choose-fish-and-shellfish-wisely/2022-national-lakes-assessment-fish-tissue-study';
 export const NATIONAL_MIN_N = 5;
 export const ALL_SPECIES = 'ALL';
+// Compare option pooling the map's species filter, so the drawer can match a multi-species map color.
+export const FILTER_SPECIES = 'SELECTED';
 // What the map measures. Only mercury today; every color mode and stat is implicitly for this contaminant.
 export const CONTAMINANTS = [{ id: 'mercury', label: 'Mercury', unit: 'ppm' }];
 export const BASINS = {

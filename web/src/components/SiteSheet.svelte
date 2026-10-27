@@ -35,11 +35,16 @@
   }
 
   // Species with samples in the period; if none, all of them so the history can still be explored.
+  // A species filter on the map narrows the chips to the chosen species found here (all of them if none are).
   let shown = $derived.by(() => {
+    const inFilter = (names) => (app.filter.length ? names.filter((n) => app.filter.includes(n)) : names);
+    for (const names of [speciesWithData(site, period, latestYear), speciesWithData(site, 'all', latestYear)]) {
+      if (inFilter(names).length) return inFilter(names);
+    }
     const names = speciesWithData(site, period, latestYear);
     return names.length ? names : speciesWithData(site, 'all', latestYear);
   });
-  let species = $derived(shown.includes(app.species) ? app.species : (shown[0] ?? defaultSpecies(site)));
+  let species = $derived(shown.includes(app.species) ? app.species : (shown[0] ?? defaultSpecies(site, app.filter)));
   let entry = $derived(site.species[species]);
   let stateAvg = $derived(groupMean(app.sites, species, period, latestYear)?.mean ?? null);
   let samples = $derived((detail?.id === site.id && detail.species[species]) || []);

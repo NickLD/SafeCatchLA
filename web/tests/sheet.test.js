@@ -18,8 +18,8 @@ const SITE = {
 };
 const NATIONAL = { all: { mean: 0.284, n: 413 }, species: { 'LARGEMOUTH BASS': { mean: 0.334, n: 273 } } };
 
-function renderSheet(period = 'all') {
-  Object.assign(app, { sites: [SITE], latestYear: 2026, period, site: '0001', species: 'LARGEMOUTH BASS', compare: null });
+function renderSheet(period = 'all', filter = []) {
+  Object.assign(app, { sites: [SITE], latestYear: 2026, period, filter, site: '0001', species: 'LARGEMOUTH BASS', compare: null });
   return render(SiteSheet, { site: SITE, national: NATIONAL, latestYear: 2026, period });
 }
 
@@ -207,4 +207,46 @@ test('all species list spells out samples and fish', () => {
   renderSheet();
   const items = within(screen.getByRole('list', { name: 'All species here' })).getAllByRole('listitem');
   expect(items[0].textContent).toMatch(/\d+ samples? made up of \d+ fish/);
+});
+
+test('species filter picks the drawer species and narrows its chips', () => {
+  renderSheet('all', ['BOWFIN']);
+  const chips = within(screen.getByRole('radiogroup', { name: 'Species' })).getAllByRole('radio');
+  expect(chips.map((c) => c.textContent.trim())).toEqual(['Bowfin']);
+  expect(chips[0].getAttribute('aria-checked')).toBe('true');
+  expect(screen.getByText('Bowfin over time')).toBeTruthy();
+});
+
+test('multi-species filter offers each chosen species found here', async () => {
+  renderSheet('all', ['BOWFIN', 'LARGEMOUTH BASS', 'SPOTTED GAR']);
+  const group = screen.getByRole('radiogroup', { name: 'Species' });
+  expect(within(group).getAllByRole('radio')).toHaveLength(2);
+  await fireEvent.click(within(group).getByRole('radio', { name: 'Bowfin' }));
+  expect(screen.getByText('Bowfin over time')).toBeTruthy();
+});
+
+test('filter with none of its species here falls back to all species', () => {
+  renderSheet('all', ['SPOTTED GAR']);
+  expect(within(screen.getByRole('radiogroup', { name: 'Species' })).getAllByRole('radio')).toHaveLength(2);
+  expect(screen.getByText('Largemouth Bass over time')).toBeTruthy();
+});
+
+test('multi-species filter adds a combined compare option matching the map', async () => {
+  renderSheet('all', ['LARGEMOUTH BASS', 'BOWFIN']);
+  const compare = screen.getByRole('region', { name: 'Compare' });
+  const select = within(compare).getByLabelText('Compare species');
+  await fireEvent.change(select, { target: { value: 'SELECTED' } });
+  expect(select.value).toBe('SELECTED');
+  // Pooled like the map: year sums (1.4 + 0.31 + 0.3 + 0.2) over 6 samples.
+  const own = within(compare).getByText('This site').parentElement;
+  expect(within(own).getByText('0.37')).toBeTruthy();
+  expect(within(own).getByText('6 samples')).toBeTruthy();
+  // EPA's per-species national figures can't stand in for a pooled selection.
+  expect(within(compare).queryByText('U.S. lakes (EPA 2022)')).toBeNull();
+});
+
+test('combined compare option needs more than one species in the filter', () => {
+  renderSheet('all', ['BOWFIN']);
+  const select = within(screen.getByRole('region', { name: 'Compare' })).getByLabelText('Compare species');
+  expect([...select.options].map((o) => o.value)).not.toContain('SELECTED');
 });

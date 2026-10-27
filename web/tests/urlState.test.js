@@ -33,6 +33,7 @@ test('sanitizeState drops values the data does not have', () => {
   expect(sanitizeState({ ...base, species: 'NOT A FISH' }, SITES)).toEqual({ species: 'LARGEMOUTH BASS' });
   expect(sanitizeState({ ...base, compare: 'BLUE CATFISH' }, SITES)).toEqual({ compare: null });
   expect(sanitizeState({ ...base, compare: 'ALL' }, SITES)).toEqual({});
+  expect(sanitizeState({ ...base, compare: 'SELECTED' }, SITES)).toEqual({});
   expect(sanitizeState({ ...base, filter: ['FOO'] }, SITES)).toEqual({ filter: [] });
   expect(sanitizeState({ ...base, filter: ['BLUE CATFISH', 'FOO'] }, SITES)).toEqual({ filter: ['BLUE CATFISH'] });
   expect(sanitizeState({ ...base, filter: ['BLUE CATFISH'] }, SITES)).toEqual({});

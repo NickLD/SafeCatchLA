@@ -1,5 +1,5 @@
 // Shareable app state in location.hash, e.g. #site=0436&species=LARGEMOUTH%20BASS
-import { ALL_SPECIES, DEFAULT_PERIOD, MAX_CUSTOM_YEARS } from './config.js';
+import { ALL_SPECIES, DEFAULT_PERIOD, FILTER_SPECIES, MAX_CUSTOM_YEARS } from './config.js';
 import { MODES } from './coloring.js';
 
 export const DEFAULTS = { site: null, species: null, filter: [], period: DEFAULT_PERIOD, color: 'avg', compare: null, range: null };
@@ -41,7 +41,7 @@ export function sanitizeState(state, sites) {
     if (!site.species[state.species]) {
       patch.species = Object.entries(site.species).sort((a, b) => b[1].n - a[1].n)[0]?.[0] ?? null;
     }
-    if (state.compare && state.compare !== ALL_SPECIES && !site.species[state.compare]) patch.compare = null;
+    if (state.compare && state.compare !== ALL_SPECIES && state.compare !== FILTER_SPECIES && !site.species[state.compare]) patch.compare = null;
   }
   const known = state.filter.filter((name) => sites.some((s) => s.species[name]));
   if (known.length !== state.filter.length) patch.filter = known;
