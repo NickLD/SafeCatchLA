@@ -123,7 +123,8 @@
     overflow-x: auto; scrollbar-width: none;
   }
   .pills.fade { mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent); /* hints that the row scrolls */ }
-  .search { position: relative; flex: 1; }
+  /* z-index lifts the results list above the pill row, whose fade mask makes it its own stacking layer. */
+  .search { position: relative; z-index: 1; flex: 1; }
   input, select, .locate {
     min-height: 44px; border-radius: 22px; border: 1px solid var(--border);
     background: var(--surface); color: var(--text); font: inherit; box-shadow: var(--shadow);
