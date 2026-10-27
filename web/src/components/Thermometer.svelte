@@ -59,7 +59,7 @@
     {/if}
   </div>
   {#each pins as p (p.kind)}
-    <div class="pin" style:--at={p.at}><span class="bubble {p.kind}"><i class="dot {p.kind}"></i>{p.label}</span></div>
+    <div class="pin"><span class="bubble {p.kind}"><i class="dot {p.kind}"></i>{p.label}</span></div>
   {/each}
   <div class="ends"><span>{low}</span><span>{high}</span></div>
   <div class="handles">
@@ -86,10 +86,9 @@
   .mark span { position: absolute; bottom: 100%; transform: translateX(-50%); font-size: 10px; color: var(--text); white-space: nowrap; }
   .mark.epa { border-color: #b00; }
   .mark.epa span { color: #b00; }
-  .pin { position: relative; height: 18px; margin-top: 3px; }
-  /* Slides from left-aligned to right-aligned along the bar so it never spills out of the legend. */
+  /* Labels stay lined up at the left; the matching dot on the bar shows where each value falls. */
+  .pin { margin-top: 3px; }
   .bubble {
-    position: absolute; top: 0; left: calc(var(--at) * 100%); transform: translateX(calc(var(--at) * -100%));
     display: inline-flex; align-items: center; gap: 4px; padding: 1px 6px; border-radius: 8px; white-space: nowrap;
     font-size: 10px; font-weight: 600; border: 1px solid var(--text);
   }
