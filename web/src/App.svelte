@@ -6,6 +6,7 @@
   import TopBar from './components/TopBar.svelte';
   import UpdatePrompt from './components/UpdatePrompt.svelte';
   import { loadMeta, loadNational, loadSites, loadStatus } from './lib/data.js';
+  import { lakeAsSite } from './lib/lakes.js';
   import { sanitizeState } from './lib/urlState.js';
   import { app, defaultSpecies, initFromHash, selectedSite, update } from './lib/state.svelte.js';
 
@@ -16,7 +17,7 @@
 
   function select(site) {
     const keep = app.site === site.id && app.species;
-    update({ site: site.id, species: keep ? app.species : defaultSpecies(site, app.filter) });
+    update({ site: site.id, lake: null, species: keep ? app.species : defaultSpecies(site, app.filter) });
   }
 
   function pick(site) {
@@ -24,8 +25,15 @@
     mapView.focusSite(site);
   }
 
+  // A tap on a lake shape acts like any map tap while a drawer is open, so it can still be dismissed.
+  function tapLake(id) {
+    if (app.site || app.lake) return closeSheet();
+    const lake = lakeAsSite(id, app.sites);
+    if (lake) update({ site: null, lake: id, species: defaultSpecies(lake, app.filter) });
+  }
+
   function closeSheet() {
-    if (app.site) update({ site: null, species: null, compare: null });
+    if (app.site || app.lake) update({ site: null, lake: null, species: null, compare: null });
   }
 
   async function locate() {
@@ -54,7 +62,7 @@
 </script>
 
 <main>
-  <MapView bind:this={mapView} onSelect={select} onMapTap={closeSheet} />
+  <MapView bind:this={mapView} onSelect={select} onMapTap={closeSheet} onLakeTap={tapLake} />
   <TopBar onPick={pick} onLocate={locate} />
   <Legend />
   {#if current}

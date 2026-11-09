@@ -57,12 +57,14 @@ test('a single-sample year has no average bar; tapping its sample says it is the
   expect(status).toContain('the only sample that year');
 });
 
-test('sample dots are drawn above the yearly bars so they can be tapped', () => {
+test('the average is drawn over the dots, while dots stay tappable above its tap areas', () => {
   const { container } = render(TrendChart, { years: YEARS, samples: SAMPLES, cuts: CUTS });
-  const marks = [...container.querySelectorAll('.pt, .hit, .sample')];
-  const lastYearPoint = marks.map((c) => !c.classList.contains('sample')).lastIndexOf(true);
-  const firstSample = marks.findIndex((c) => c.classList.contains('sample'));
-  expect(firstSample).toBeGreaterThan(lastYearPoint);
+  const marks = [...container.querySelectorAll('.line, .pt, .hit, .sample')];
+  const lastOf = (cls) => marks.map((c) => c.classList.contains(cls)).lastIndexOf(true);
+  const firstOf = (cls) => marks.findIndex((c) => c.classList.contains(cls));
+  expect(firstOf('sample')).toBeGreaterThan(lastOf('hit'));
+  expect(firstOf('line')).toBeGreaterThan(lastOf('sample'));
+  expect(firstOf('pt')).toBeGreaterThan(lastOf('sample'));
 });
 
 test('yearly average is a pill that shows and hides the average line', async () => {

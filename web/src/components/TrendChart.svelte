@@ -308,16 +308,14 @@
       {/if}
 
       {#if showAvg}
-        <polyline points={pts.map((p) => `${sx(p.year)},${sy(p.mean)}`).join(' ')} class="line" />
         {#each bars as p (p.year)}
-          <rect x={sx(p.year) - barW / 2} y={sy(p.mean) - 2} width={barW} height="4" rx="2" class="pt" />
           <rect x={sx(p.year) - barW / 2} y={sy(p.mean) - 8} width={barW} height="16" class="hit"
                 role="button" tabindex="0" aria-label="{p.year}: {formatPpm(p.mean)} ppm"
                 onclick={() => pickYear(p)}
                 onkeydown={(e) => e.key === 'Enter' && pickYear(p)} />
         {/each}
       {/if}
-      <!-- Samples on top of the average points so a lone sample can always be tapped. -->
+      <!-- Sample dots sit above the average's tap areas so a lone sample can always be tapped. -->
       {#each visible as s, i (i)}
         {@const x = xs[i]}
         {@const y = sy(s.value ?? 0)}
@@ -326,6 +324,13 @@
                 onclick={() => pickSample(s)}
                 onkeydown={(e) => e.key === 'Enter' && pickSample(s)} />
       {/each}
+      <!-- Drawn last so the average overlays every dot; it ignores taps, which land on the shapes beneath. -->
+      {#if showAvg}
+        <polyline points={pts.map((p) => `${sx(p.year)},${sy(p.mean)}`).join(' ')} class="line" />
+        {#each bars as p (p.year)}
+          <rect x={sx(p.year) - barW / 2} y={sy(p.mean) - 2} width={barW} height="4" rx="2" class="pt" />
+        {/each}
+      {/if}
       </g>
     </svg>
   </div>
@@ -341,8 +346,10 @@
       {@const inYear = visible.filter((s) => s.date.startsWith(String(selected.p.year)))}
       <b>{selected.p.year}: {formatPpm(selected.p.mean)} ppm average</b> ·
       {inYear.length ? describeYear(inYear) : `${selected.p.n} ${selected.p.n === 1 ? 'sample' : 'samples'}`}
-    {:else}
+    {:else if samples.length}
       Dots are individual samples, colored by fish size. Bars and the line show the yearly average. Tap any point for details.
+    {:else}
+      Bars and the line show the yearly average. Tap any point for details.
     {/if}
   </figcaption>
   </div>
@@ -393,7 +400,7 @@
   .key .k-dot { width: 8px; height: 8px; border-radius: 50%; background: #9e9e9e; }
   .state { stroke: var(--muted); stroke-dasharray: 2 2; }
   .sample { opacity: 0.75; stroke: var(--surface); stroke-width: 0.8; cursor: pointer; }
-  .line { fill: none; stroke: var(--text); stroke-width: 1.25; opacity: 0.45; }
+  .line { fill: none; stroke: var(--text); stroke-width: 1.5; opacity: 0.85; pointer-events: none; }
   .pt { fill: var(--text); stroke: var(--surface); stroke-width: 1; pointer-events: none; }
   .hit { fill: transparent; cursor: pointer; }
   .pointer { stroke: var(--text); stroke-width: 1; stroke-dasharray: 2 2; }

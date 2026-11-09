@@ -1,4 +1,5 @@
 // App-wide state, mirrored into location.hash so any view can be shared as a link.
+import { lakeAsSite } from './lakes.js';
 import { periodMean } from './stats.js';
 import { DEFAULTS, parseHash, toHash } from './urlState.js';
 
@@ -15,7 +16,9 @@ export function update(patch) {
   history.replaceState(null, '', hash || location.pathname + location.search);
 }
 
+// The open site, or a whole lake's pooled stand-in for one.
 export function selectedSite() {
+  if (app.lake) return lakeAsSite(app.lake, app.sites);
   return app.site ? (app.sites.find((s) => s.id === app.site) ?? null) : null;
 }
 

@@ -112,3 +112,14 @@ test('species picker opens above the map and selecting a group filters the map',
   await page.getByRole('button', { name: 'Done' }).click();
   await expect(page.getByRole('dialog', { name: 'Choose species' })).toHaveCount(0);
 });
+
+test('tapping a lake shape opens the combined lake view', async ({ page }) => {
+  await page.goto('/#site=0335');
+  await expect(page.locator('.lake-label', { hasText: 'False River' })).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('complementary', { name: 'Site details' })).toHaveCount(0);
+  const box = await page.locator('.lake-label', { hasText: 'False River' }).boundingBox();
+  await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+  await expect(page.getByRole('heading', { name: 'False River', exact: true })).toBeVisible();
+  await expect(page).toHaveURL(/lake=false-river/);
+});

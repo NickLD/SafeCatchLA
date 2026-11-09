@@ -1,5 +1,5 @@
 <script>
-  import { CONTAMINANTS, DEQ_MERCURY_URL, EPA_GUIDELINE_PPM, EPA_NLA_URL } from '../lib/config.js';
+  import { CONTAMINANTS, DEQ_MERCURY_URL, EPA_GUIDELINE_PPM, EPA_GUIDELINE_URL, EPA_NLA_URL } from '../lib/config.js';
   import { MODE_LABELS } from '../lib/coloring.js';
   import { formatDate } from '../lib/format.js';
   import { filterLabel } from '../lib/speciesGroups.js';
@@ -21,19 +21,19 @@
     {CONTAMINANTS[0].label} in fish tissue · {selection}{pooled ? ' (mixed)' : ''}
   </div>
   <Thermometer />
-  {#if app.color === 'avg'}<div class="note">EPA {EPA_GUIDELINE_PPM} ppm is a general guideline, not a safety limit.</div>{/if}
+  {#if app.color === 'avg'}<div class="note">EPA {EPA_GUIDELINE_PPM} ppm is a general guideline, not a safety limit. National EPA guideline source: <a href={EPA_GUIDELINE_URL} target="_blank" rel="noopener">epa.gov ↗</a></div>{/if}
   <div class="nodata"><span class="dot hollow"></span>{app.color === 'trend' ? 'Too few years to tell' : 'No recent data'}</div>
   {#if open}
     <p>
       {#if app.color === 'avg'}
         Blue is below the EPA guideline ({EPA_GUIDELINE_PPM} ppm) and red is above it; the deeper the color, the
-        further away. Drag the handles to set where the deepest colors are reached.
+        further away. Use Adjust colors to set where the deepest colors are reached.
       {:else if app.color === 'trend'}
         How fast mercury has changed at each site, as percent per decade. Grey is no change, blue is falling
         (improving) and red is rising (worsening). Needs at least 3 sampled years spanning 5+ years.
-        Drag the handles to set how much change gets the deepest colors.
+        Use Adjust colors to set how much change gets the deepest colors.
       {:else}
-        Drag the handles to set the range the colors span.
+        Use Adjust colors to set the range the colors span.
       {/if}
       With more than one species selected, colors pool them ("mixed"), which can hide high-mercury fish.
     </p>
@@ -59,6 +59,7 @@
   .head button { border: 0; background: none; font-size: 18px; min-width: 32px; min-height: 32px; cursor: pointer; color: var(--text); }
   .sub { color: var(--muted); }
   .note { color: var(--muted); font-size: 10px; font-style: italic; }
+  .note a { color: var(--accent); }
   .dot { display: inline-block; width: 12px; min-width: 12px; height: 12px; border-radius: 50%; border: 1px solid rgba(0, 0, 0, 0.25); flex-shrink: 0; }
   p { margin: 6px 0 0; }
   .nodata { display: flex; align-items: center; gap: 6px; margin-top: 2px; }

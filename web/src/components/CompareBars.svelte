@@ -16,7 +16,7 @@
   let rows = $derived.by(() => {
     const species = choice === FILTER_SPECIES ? app.filter : choice;
     const own = periodMean(speciesYears(site, species), period, latestYear);
-    const out = [{ label: 'This site', value: own?.mean ?? null, note: own ? `${own.n} ${own.n === 1 ? 'sample' : 'samples'}` : 'no samples in period', own: true, one: own?.fish === 1 }];
+    const out = [{ label: site.members ? 'This lake' : 'This site', value: own?.mean ?? null, note: own ? `${own.n} ${own.n === 1 ? 'sample' : 'samples'}` : 'no samples in period', own: true, one: own?.fish === 1 }];
     if (site.basin) {
       const b = groupMean(app.sites, species, period, latestYear, (s) => s.basin === site.basin);
       out.push({ label: `${BASINS[site.basin]} basin`, value: b?.mean ?? null, note: b ? `${b.nSites} sites` : 'no data' });

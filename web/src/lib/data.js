@@ -9,6 +9,8 @@ async function getJson(path) {
 
 export const loadSites = () => getJson('sites.json');
 export const loadMeta = () => getJson('meta.json');
+// Simplified lake shapes from OpenStreetMap (© OpenStreetMap contributors, ODbL), keyed by lake id.
+export const loadLakeOutlines = () => getJson('lake-outlines.json');
 export const loadNational = () => getJson('national.json');
 // Last successful pull from LDEQ; absent until the first CI refresh writes it.
 export const loadStatus = () => getJson('status.json').catch(() => null);

@@ -62,7 +62,9 @@
     <div class="pin"><span class="bubble {p.kind}"><i class="dot {p.kind}"></i>{p.label}</span></div>
   {/each}
   <div class="ends"><span>{low}</span><span>{high}</span></div>
-  <div class="handles">
+  <details>
+    <summary>Adjust colors</summary>
+    <div class="handles">
     <label>
       <span>{scale.handles[0]} <b>{num(range[0])}</b></span>
       <input type="range" aria-label={scale.handles[0]} min={scale.minBounds[0]} max={scale.minBounds[1]} step={scale.step}
@@ -73,7 +75,8 @@
       <input type="range" aria-label={scale.handles[1]} min={scale.maxBounds[0]} max={scale.maxBounds[1]} step={scale.step}
              value={range[1]} oninput={(e) => setEnd(1, e.currentTarget.value)} />
     </label>
-  </div>
+    </div>
+  </details>
   {#if app.range}
     <button class="reset" onclick={() => update({ range: null })}>Reset range</button>
   {/if}
@@ -100,6 +103,7 @@
   .dot.latest { background: var(--surface); border: 2px solid var(--text); }
   .bubble.avg .dot { border-color: var(--surface); background: var(--surface); }
   .ends { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); margin-top: 2px; }
+  summary { min-height: 28px; line-height: 28px; font-size: 11px; color: var(--accent); cursor: pointer; }
   .handles { display: flex; gap: 10px; margin-top: 4px; }
   label { flex: 1; display: flex; flex-direction: column; font-size: 10px; color: var(--muted); min-width: 0; }
   input { width: 100%; margin: 0; min-height: 28px; accent-color: var(--accent); }

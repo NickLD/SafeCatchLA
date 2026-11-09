@@ -1,9 +1,10 @@
 <script>
-  import { BASINS } from '../lib/config.js';
+  import { ALL_SPECIES, BASINS } from '../lib/config.js';
   import { loadSiteDetail } from '../lib/data.js';
+  import { addLatest, lakeForSite, mergeDetails } from '../lib/lakes.js';
   import { displaySpecies } from '../lib/format.js';
   import { app, defaultSpecies, update } from '../lib/state.svelte.js';
-  import { groupMean, speciesWithData } from '../lib/stats.js';
+  import { groupMean, mixedYears, speciesWithData } from '../lib/stats.js';
   import AllSpeciesList from './AllSpeciesList.svelte';
   import CompareBars from './CompareBars.svelte';
   import DataSource from './DataSource.svelte';
@@ -44,19 +45,33 @@
     const names = speciesWithData(site, period, latestYear);
     return names.length ? names : speciesWithData(site, 'all', latestYear);
   });
-  let species = $derived(shown.includes(app.species) ? app.species : (shown[0] ?? defaultSpecies(site, app.filter)));
-  let entry = $derived(site.species[species]);
+  // "All species" is a choice alongside the species, never the default: a mixed average depends on what was caught.
+  let hasSeveral = $derived(Object.keys(site.species).length > 1);
+  let mixed = $derived(hasSeveral && app.species === ALL_SPECIES);
+  let species = $derived(mixed ? ALL_SPECIES : shown.includes(app.species) ? app.species : (shown[0] ?? defaultSpecies(site, app.filter)));
+  let entry = $derived(mixed ? { years: mixedYears(site), latest: Object.values(site.species).reduce((a, sp) => addLatest(a, sp.latest), null) } : site.species[species]);
   let stateAvg = $derived(groupMean(app.sites, species, period, latestYear)?.mean ?? null);
-  let samples = $derived((detail?.id === site.id && detail.species[species]) || []);
+  // Size classes are per species, so a mixed chart shows only the yearly averages.
+  let samples = $derived((!mixed && detail?.id === site.id && detail.species[species]) || []);
 
   $effect(() => {
     const id = site.id;
-    loadSiteDetail(id).then((d) => { if (d.id === site.id) detail = d; }).catch(() => {});
+    const load = site.members
+      ? Promise.all(site.members.map((m) => loadSiteDetail(m.id))).then((all) => mergeDetails(id, all))
+      : loadSiteDetail(id);
+    load.then((d) => { if (d.id === site.id) detail = d; }).catch(() => {});
   });
 
   function close() {
-    update({ site: null, species: null, compare: null });
+    update({ site: null, lake: null, species: null, compare: null });
   }
+
+  let lake = $derived(site.members ? null : lakeForSite(site.id));
+  const memberEntry = (m) => (mixed ? { n: m.n, years: mixedYears(m) } : m.species[species]);
+  const years = (sp) => {
+    const all = Object.keys(sp.years).sort();
+    return all[0] === all.at(-1) ? all[0] : `${all[0]}–${all.at(-1)}`;
+  };
 
   function onPointerDown(e) {
     if (e.target.closest('.actions')) return; // share/close buttons aren't drag starts
@@ -116,7 +131,7 @@
         </p>
       </div>
       <div class="actions">
-        <button onclick={share} aria-label="Share this site">↗</button>
+        <button onclick={share} aria-label={site.members ? 'Share this lake' : 'Share this site'}>↗</button>
         <button onclick={close} aria-label="Close">✕</button>
       </div>
     </header>
@@ -124,7 +139,14 @@
   <div class="body">
     {#if toast}<p class="toast">{toast}</p>{/if}
 
-    <SpeciesChips names={shown} selected={species} onSelect={(name) => update({ species: name })} />
+    {#if lake}
+      <button class="lake" onclick={() => update({ lake: lake.id, site: null })}>View all of {lake.name} ({lake.sites.length} sites)</button>
+    {/if}
+    {#if site.members}
+      <p class="pooled">Combined from {site.members.length} sampling sites. They weren't always sampled in the same years, so changes over time can partly reflect which spot was sampled.</p>
+    {/if}
+
+    <SpeciesChips names={shown} selected={species} showAll={hasSeveral} onSelect={(name) => update({ species: name })} />
     <HeadlineStats {entry} {period} {latestYear} />
     <Disclaimer />
 
@@ -134,7 +156,20 @@
 
     <CompareBars {site} {national} {period} {latestYear} options={shown} selected={species} />
     <AllSpeciesList {site} {period} {latestYear} />
-    <DataSource siteId={site.id} updated={app.meta?.updated} checked={app.status?.checkedAt} meta={app.meta} />
+    {#if site.members}
+      <h3>Sites included</h3>
+      <ul class="members" aria-label="Sites included">
+        {#each site.members as m (m.id)}
+          <li>
+            <button onclick={() => update({ site: m.id, lake: null })}>{m.name}</button>
+            <small>
+              {#if memberEntry(m)}{memberEntry(m).n} {mixed ? '' : `${displaySpecies(species)} `}{memberEntry(m).n === 1 ? 'sample' : 'samples'}, {years(memberEntry(m))}{:else}No {displaySpecies(species)} samples{/if}
+            </small>
+          </li>
+        {/each}
+      </ul>
+    {/if}
+    <DataSource siteId={site.members ? null : site.id} updated={app.meta?.updated} checked={app.status?.checkedAt} meta={app.meta} />
   </div>
   {#if sheetState === 'peek' && !hintSeen}
     <button class="hint" onclick={() => setState('expanded')}>
@@ -175,6 +210,15 @@
     background: var(--surface); color: var(--text); cursor: pointer; font-size: 16px;
   }
   .toast { margin: 4px 0; font-size: 12px; color: var(--accent); }
+  .lake {
+    width: 100%; min-height: 40px; margin: 4px 0; border-radius: 20px; border: 1px solid var(--accent);
+    background: none; color: var(--accent); font-size: 14px; font-weight: 600; cursor: pointer;
+  }
+  .pooled { margin: 4px 0; padding: 6px 8px; border-radius: 6px; font-size: 12px; background: var(--warn-bg); border: 1px solid var(--warn-border); }
+  .members { list-style: none; margin: 0; padding: 0; }
+  .members li { display: flex; flex-direction: column; padding: 4px 0; }
+  .members button { padding: 4px 0; border: 0; background: none; color: var(--accent); font-size: 13px; text-align: left; cursor: pointer; text-decoration: underline; }
+  .members small { color: var(--muted); font-size: 11px; }
 
   @media (min-width: 768px) {
     .sheet, .sheet.peek, .sheet.expanded {

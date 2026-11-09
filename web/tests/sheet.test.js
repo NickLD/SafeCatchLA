@@ -119,7 +119,7 @@ test('species with no samples in the period are left out', () => {
   Object.assign(app, { sites: [MIXED_SITE], latestYear: 2026, period: 20, site: '0001', species: 'BOWFIN', compare: null });
   render(SiteSheet, { site: MIXED_SITE, national: NATIONAL, latestYear: 2026, period: 20 });
   const chips = screen.getByRole('radiogroup', { name: 'Species' });
-  expect(within(chips).getAllByRole('radio').map((r) => r.textContent.trim())).toEqual(['Largemouth Bass']);
+  expect(within(chips).getAllByRole('radio').map((r) => r.textContent.trim())).toEqual(['All species (mixed)', 'Largemouth Bass']);
   expect(screen.queryByText(/no samples in period/)).toBeNull();
   const items = within(screen.getByRole('list', { name: 'All species here' })).getAllByRole('listitem');
   expect(items).toHaveLength(1);
@@ -131,7 +131,7 @@ test('a site with nothing in the period still offers all its species', () => {
   Object.assign(app, { sites: [MIXED_SITE], latestYear: 2026, period: 5, site: '0001', species: null, compare: null });
   render(SiteSheet, { site: MIXED_SITE, national: NATIONAL, latestYear: 2026, period: 5 });
   const chips = screen.getByRole('radiogroup', { name: 'Species' });
-  expect(within(chips).getAllByRole('radio')).toHaveLength(2);
+  expect(within(chips).getAllByRole('radio')).toHaveLength(3);
 });
 
 test('drawer credits LDEQ with links and an independence disclaimer', () => {
@@ -212,22 +212,22 @@ test('all species list spells out samples and fish', () => {
 test('species filter picks the drawer species and narrows its chips', () => {
   renderSheet('all', ['BOWFIN']);
   const chips = within(screen.getByRole('radiogroup', { name: 'Species' })).getAllByRole('radio');
-  expect(chips.map((c) => c.textContent.trim())).toEqual(['Bowfin']);
-  expect(chips[0].getAttribute('aria-checked')).toBe('true');
+  expect(chips.map((c) => c.textContent.trim())).toEqual(['All species (mixed)', 'Bowfin']);
+  expect(chips[1].getAttribute('aria-checked')).toBe('true');
   expect(screen.getByText('Bowfin over time')).toBeTruthy();
 });
 
 test('multi-species filter offers each chosen species found here', async () => {
   renderSheet('all', ['BOWFIN', 'LARGEMOUTH BASS', 'SPOTTED GAR']);
   const group = screen.getByRole('radiogroup', { name: 'Species' });
-  expect(within(group).getAllByRole('radio')).toHaveLength(2);
+  expect(within(group).getAllByRole('radio')).toHaveLength(3);
   await fireEvent.click(within(group).getByRole('radio', { name: 'Bowfin' }));
   expect(screen.getByText('Bowfin over time')).toBeTruthy();
 });
 
 test('filter with none of its species here falls back to all species', () => {
   renderSheet('all', ['SPOTTED GAR']);
-  expect(within(screen.getByRole('radiogroup', { name: 'Species' })).getAllByRole('radio')).toHaveLength(2);
+  expect(within(screen.getByRole('radiogroup', { name: 'Species' })).getAllByRole('radio')).toHaveLength(3);
   expect(screen.getByText('Largemouth Bass over time')).toBeTruthy();
 });
 
@@ -249,4 +249,55 @@ test('combined compare option needs more than one species in the filter', () => 
   renderSheet('all', ['BOWFIN']);
   const select = within(screen.getByRole('region', { name: 'Compare' })).getByLabelText('Compare species');
   expect([...select.options].map((o) => o.value)).not.toContain('SELECTED');
+});
+
+const LAKE_MEMBER = (id, value) => ({
+  id, name: `Site ${id}`, basin: '12', lat: 30.6, lon: -91.4, n: 1, last: '2020-01-01', address: '',
+  species: { 'LARGEMOUTH BASS': { n: 1, latest: ['2020-01-01', value], years: { 2020: [value, 1] } } },
+});
+
+test('a site on a confirmed lake offers the whole-lake view, which pools its sites', async () => {
+  const members = [LAKE_MEMBER('0335', 0.2), LAKE_MEMBER('0536', 0.4), LAKE_MEMBER('1145', 0.6)];
+  Object.assign(app, { sites: members, latestYear: 2026, period: 'all', filter: [], site: '0335', lake: null, species: 'LARGEMOUTH BASS', compare: null });
+  const { unmount } = render(SiteSheet, { site: members[0], national: NATIONAL, latestYear: 2026, period: 'all' });
+  await fireEvent.click(screen.getByRole('button', { name: 'View all of False River (3 sites)' }));
+  expect(app.lake).toBe('false-river');
+  expect(app.site).toBeNull();
+  expect(location.hash).toContain('lake=false-river');
+  unmount();
+
+  const { lakeAsSite } = await import('../src/lib/lakes.js');
+  render(SiteSheet, { site: lakeAsSite('false-river', members), national: NATIONAL, latestYear: 2026, period: 'all' });
+  expect(within(screen.getByRole('region', { name: 'Summary' })).getAllByText('0.40').length).toBeGreaterThan(0);
+  expect(within(screen.getByRole('region', { name: 'Compare' })).getByText('This lake')).toBeTruthy();
+  expect(screen.getByText(/Combined from 3 sampling sites/)).toBeTruthy();
+  expect(screen.queryByRole('button', { name: /View all of/ })).toBeNull();
+  await fireEvent.click(within(screen.getByRole('list', { name: 'Sites included' })).getByRole('button', { name: 'Site 0536' }));
+  expect(app.site).toBe('0536');
+  expect(app.lake).toBeNull();
+  Object.assign(app, { site: null, lake: null, species: null });
+});
+
+test('a site not on a confirmed lake has no whole-lake button', () => {
+  renderSheet();
+  expect(screen.queryByRole('button', { name: /View all of/ })).toBeNull();
+});
+
+test('All species is the first chip, is not the default, and pools every species', async () => {
+  renderSheet('all');
+  const chips = within(screen.getByRole('radiogroup', { name: 'Species' })).getAllByRole('radio');
+  expect(chips[0].textContent.trim()).toBe('All species (mixed)');
+  expect(chips[0].getAttribute('aria-checked')).toBe('false');
+  await fireEvent.click(chips[0]);
+  expect(app.species).toBe('ALL');
+  expect(within(screen.getByRole('region', { name: 'Summary' })).getByText('0.37')).toBeTruthy();
+  expect(screen.getByRole('heading', { name: 'All species (mixed) over time' })).toBeTruthy();
+  expect(screen.getByLabelText('Compare species').value).toBe('ALL');
+});
+
+test('a site with one species has no All species chip', () => {
+  const one = { ...SITE, species: { BOWFIN: SITE.species.BOWFIN } };
+  Object.assign(app, { sites: [one], latestYear: 2026, period: 'all', filter: [], site: '0001', lake: null, species: 'BOWFIN', compare: null });
+  render(SiteSheet, { site: one, national: NATIONAL, latestYear: 2026, period: 'all' });
+  expect(screen.queryByRole('radio', { name: 'All species (mixed)' })).toBeNull();
 });

@@ -1,8 +1,9 @@
 // Shareable app state in location.hash, e.g. #site=0436&species=LARGEMOUTH%20BASS
 import { ALL_SPECIES, DEFAULT_PERIOD, FILTER_SPECIES, MAX_CUSTOM_YEARS } from './config.js';
 import { MODES } from './coloring.js';
+import { lakeAsSite } from './lakes.js';
 
-export const DEFAULTS = { site: null, species: null, filter: [], period: DEFAULT_PERIOD, color: 'avg', compare: null, range: null };
+export const DEFAULTS = { site: null, lake: null, species: null, filter: [], period: DEFAULT_PERIOD, color: 'avg', compare: null, range: null };
 
 function parsePeriod(v) {
   if (v === 'all') return 'all';
@@ -18,7 +19,7 @@ export function parseHash(hash) {
   } catch {
     return state;
   }
-  for (const key of ['site', 'species', 'compare']) {
+  for (const key of ['site', 'lake', 'species', 'compare']) {
     const v = params.get(key);
     if (v) state[key] = v;
   }
@@ -35,10 +36,10 @@ export function parseHash(hash) {
 // Shared links can outlive the data (or be hand-edited): drop values the loaded sites don't have.
 export function sanitizeState(state, sites) {
   const patch = {};
-  const site = state.site ? sites.find((s) => s.id === state.site) : null;
-  if (state.site && !site) Object.assign(patch, { site: null, species: null, compare: null });
+  const site = state.lake ? lakeAsSite(state.lake, sites) : state.site ? sites.find((s) => s.id === state.site) : null;
+  if ((state.site || state.lake) && !site) Object.assign(patch, { site: null, lake: null, species: null, compare: null });
   if (site) {
-    if (!site.species[state.species]) {
+    if (state.species !== ALL_SPECIES && !site.species[state.species]) {
       patch.species = Object.entries(site.species).sort((a, b) => b[1].n - a[1].n)[0]?.[0] ?? null;
     }
     if (state.compare && state.compare !== ALL_SPECIES && state.compare !== FILTER_SPECIES && !site.species[state.compare]) patch.compare = null;

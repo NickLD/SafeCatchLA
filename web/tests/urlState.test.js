@@ -3,7 +3,7 @@ import { DEFAULTS, parseHash, sanitizeState, toHash } from '../src/lib/urlState.
 
 test('parseHash valid', () => {
   expect(parseHash('#site=0436&species=LARGEMOUTH%20BASS&period=all&color=age&filter=BOWFIN'))
-    .toEqual({ site: '0436', species: 'LARGEMOUTH BASS', filter: ['BOWFIN'], period: 'all', color: 'age', compare: null, range: null });
+    .toEqual({ site: '0436', lake: null, species: 'LARGEMOUTH BASS', filter: ['BOWFIN'], period: 'all', color: 'age', compare: null, range: null });
   expect(parseHash('#filter=LARGEMOUTH%20BASS,SPOTTED%20BASS').filter).toEqual(['LARGEMOUTH BASS', 'SPOTTED BASS']);
   expect(parseHash('#period=5').period).toBe(5);
   expect(parseHash('#color=count').color).toBe('avg'); // removed modes in old links
@@ -37,7 +37,7 @@ test('sanitizeState drops values the data does not have', () => {
   expect(sanitizeState({ ...base, filter: ['FOO'] }, SITES)).toEqual({ filter: [] });
   expect(sanitizeState({ ...base, filter: ['BLUE CATFISH', 'FOO'] }, SITES)).toEqual({ filter: ['BLUE CATFISH'] });
   expect(sanitizeState({ ...base, filter: ['BLUE CATFISH'] }, SITES)).toEqual({});
-  expect(sanitizeState({ ...base, site: 'nope' }, SITES)).toEqual({ site: null, species: null, compare: null });
+  expect(sanitizeState({ ...base, site: 'nope' }, SITES)).toEqual({ site: null, lake: null, species: null, compare: null });
   expect(sanitizeState({ ...DEFAULTS, site: '0436' }, SITES)).toEqual({ species: 'LARGEMOUTH BASS' });
 });
 
@@ -52,5 +52,5 @@ test('range round-trips and bad ranges are ignored', () => {
 test('custom periods: any whole number of years from 1 to 50', () => {
   expect(parseHash('#period=7').period).toBe(7);
   expect(parseHash('#period=50').period).toBe(50);
-  for (const bad of ['0', '51', '2.5', 'x', '-3']) expect(parseHash(`#period=${bad}`).period).toBe(10);
+  for (const bad of ['0', '51', '2.5', 'x', '-3']) expect(parseHash(`#period=${bad}`).period).toBe('all');
 });

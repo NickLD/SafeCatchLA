@@ -1,12 +1,13 @@
 export const EPA_GUIDELINE_PPM = 0.3;
 export const NEAR_LOWER_PPM = 0.2;
 export const PERIODS = [5, 10, 20, 'all'];
-export const DEFAULT_PERIOD = 10;
+export const DEFAULT_PERIOD = 'all';
 export const MAX_CUSTOM_YEARS = 50; // a custom period is any whole number of years from 1 to this
 export const PERIOD_LABELS = { 5: 'Last 5 yrs', 10: 'Last 10 yrs', 20: 'Last 20 yrs', all: 'All years' };
 export const LDH_ADVISORIES_URL = 'https://ldh.la.gov/page/2629';
 export const DEQ_MERCURY_URL = 'https://waterdata.deq.louisiana.gov/MercuryData';
 export const deqSiteUrl = (id) => `https://waterdata.deq.louisiana.gov/Collection_Data/WQ1994001/${encodeURIComponent(id)}`;
+export const EPA_GUIDELINE_URL = 'https://www.epa.gov/sites/default/files/2020-01/documents/methylmercury-criterion-2001.pdf';
 export const EPA_NLA_URL = 'https://www.epa.gov/choose-fish-and-shellfish-wisely/2022-national-lakes-assessment-fish-tissue-study';
 export const NATIONAL_MIN_N = 5;
 export const ALL_SPECIES = 'ALL';
